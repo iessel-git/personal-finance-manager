@@ -5,19 +5,21 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.kcmedia</groupId>
-    <artifactId>personal-finance-app</artifactId>
+    <!-- Updated to match your new package name -->
+    <groupId>com.cse</groupId>
+    <artifactId>financeapp</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>Personal Finance Management App</name>
-    <description>A Java portfolio project for tracking expenses, budgets, and reports.</description>
+    <name>Finance App</name>
+    <description>A Java portfolio project for tracking expenses, budgets, and financial reports.</description>
 
-    <!-- Java + Compiler -->
+    <!-- Java settings -->
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
         <sqlite.version>3.45.1.0</sqlite.version>
         <junit.version>5.10.0</junit.version>
     </properties>
@@ -39,21 +41,20 @@
         </dependency>
     </dependencies>
 
-    <!-- Enable JUnit 5 -->
     <build>
         <plugins>
 
-            <!-- Compiler Plugin -->
+            <!-- Java Compiler Plugin -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <source>21</source>
+                    <target>21</target>
                 </configuration>
             </plugin>
 
-            <!-- JUnit 5 -->
+            <!-- JUnit 5 plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -69,4 +70,3 @@
     </build>
 
 </project>
-
