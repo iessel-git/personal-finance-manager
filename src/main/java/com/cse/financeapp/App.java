@@ -14,6 +14,15 @@ public class App {
 
         System.out.println("Starting Finance App...");
 
+        try {
+            // Force-load SQLite JDBC driver
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            System.out.println("❌ SQLite JDBC Driver not found!");
+            e.printStackTrace();
+            return;
+        }
+
         // Connect to SQLite
         try (Connection conn = DriverManager.getConnection(DB_URL)) {
 
