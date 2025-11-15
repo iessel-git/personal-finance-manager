@@ -77,19 +77,18 @@ DevOps / Tools
 📂 Project Structure (Planned)
 
 personal-finance-manager/
-│
-├── backend/
-│   ├── src/main/java/com/financeapp/...
-│   ├── src/main/resources/
-│   └── pom.xml
-│
-├── frontend/
-│   ├── src/
-│   ├── public/
-│   └── package.json
-│
-└── README.md
 
+ backend/
+   src/main/java/com/financeapp/...
+   src/main/resources/
+   pom.xml
+
+ frontend/
+   src/
+       public/
+       package.json
+
+  README.md
 
 🧪 Testing (Upcoming)
 
