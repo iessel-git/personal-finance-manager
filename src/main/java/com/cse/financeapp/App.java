@@ -30,5 +30,7 @@ public class App {
         dao.getExpenses().forEach(System.out::println);
 
         System.out.println("\nFinance App finished.");
+        System.out.println("DB Path: " + new java.io.File("finance.db").getAbsolutePath());
+
     }
 }
