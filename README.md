@@ -1,3 +1,5 @@
+![Finance Manager Banner](https://via.placeholder.com/1200x300?text=Personal+Finance+Manager)
+
 Personal Finance Manager (Java + Spring Boot)
 
 A full-stack Java web application that helps users track expenses, create budgets, monitor spending patterns, and generate reports.
