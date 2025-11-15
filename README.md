@@ -1,48 +1,140 @@
-![Finance Manager Banner](https://via.placeholder.com/1200x300?text=Personal+Finance+Manager)
+📘 Personal Finance Manager
 
-Personal Finance Manager (Java + Spring Boot)
+A Java Spring Boot web application for managing personal expenses, budgets, and financial insights. 
 
-A full-stack Java web application that helps users track expenses, create budgets, monitor spending patterns, and generate reports.
-Built with Java 17, Spring Boot, SQLite/PostgreSQL, Maven, and REST APIs.
+Overview
 
-🚀 Features
+Personal Finance Manager is a full-stack Java web application designed to help users track spending, create budgets, monitor financial trends, and generate reports.
+It demonstrates strong skills in:
 
-User authentication
+* Java 17
+* Spring Boot
+* REST APIs
+* SQLite/PostgreSQL
+* Maven
+* Cloud Deployment
+* Git, CI/CD
+* Frontend integration (React)
 
-Add, edit, delete expenses
+This project serves as a portfolio-ready, production-style application.
 
-Monthly and yearly budgets
+ ✨ Features
 
-Dashboard with charts
+🔐 User Management
 
-Reports (PDF/CSV)
+* User registration & login
+* Secure authentication (JWT or Spring Security)
 
-Cloud deployment
+💸 Expense Tracking
 
-Mobile-friendly UI
+* Add, edit, delete expenses
+* Categorize transactions
+* Filter/search by date, category, amount
+
+📊 Budget Management
+
+* Monthly & yearly budgets
+* Budget vs. actual comparisons
+
+📈 Dashboard & Reports
+
+* Spending charts (monthly/yearly)
+* Category breakdown
+* Export reports (PDF/CSV)
+
+🌐 Cloud-Ready Architecture
+
+* Local SQLite for development
+* PostgreSQL for production
+* Deployed backend & frontend
 
 🛠️ Tech Stack
 
-Backend: Java 17, Spring Boot, Maven
+ Backend
 
-Database: SQLite (dev), PostgreSQL (cloud)
+* Java 17
+* Spring Boot (Web, Data JPA, Security)
+* Maven
+* REST API architecture
 
-Frontend: React or Thymeleaf
+Frontend
 
-Hosting: Render / Railway / Netlify
+* React
+ 
+Database
 
-Version control: Git & GitHub
+* SQLite (development)
+* PostgreSQL (cloud deployment)
 
-📦 Upcoming Features
+DevOps / Tools
 
-AI spending insights
+* Git & GitHub
+* GitHub Projects (Kanban board)
+* GitHub Actions (CI/CD optional)
+* Cloud hosting (Render, AWS)
 
-Multi-currency support
 
-Export to Excel
+📂 Project Structure (Planned)
 
-Receipt scanning
+personal-finance-manager/
+│
+├── backend/
+│   ├── src/main/java/com/financeapp/...
+│   ├── src/main/resources/
+│   └── pom.xml
+│
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   └── package.json
+│
+└── README.md
 
-📁 Project Status
 
-🔧 Development starting — core backend setup in progress.
+🧪 Testing (Upcoming)
+
+* JUnit 5 unit tests
+* Integration tests
+* MockMVC API testing
+* TestContainers (PostgreSQL)
+
+
+🚧 Project Status
+
+Development has started.
+Upcoming milestones:
+
+* [ ] Initialize Spring Boot project
+* [ ] Create Expense model + API
+* [ ] Set up SQLite
+* [ ] Build React frontend pages
+* [ ] Deploy backend to cloud
+* [ ] Deploy frontend
+* [ ] Add charts & reports
+* [ ] Add authentication
+* [ ] Add PDF/CSV export
+
+📅 Roadmap
+
+* AI spending insights
+* Currency conversion API
+* Receipt scanning (OCR)
+* Mobile app (React Native / Flutter)
+* Multi-user dashboard
+
+📄 License
+
+This project is licensed under the **MIT License** — free to use, modify, and distribute with attribution.
+
+🤝 Contributions
+
+Feel free to submit issues, feature requests, or pull requests.
+See the project board for tasks and roadmap.
+
+
+ 🧑‍💻 Author
+
+KC 
+Java Developer | Cloud Engineer | IT Professional
+
+
