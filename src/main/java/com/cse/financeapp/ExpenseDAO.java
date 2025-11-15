@@ -6,20 +6,26 @@ import java.util.List;
 
 public class ExpenseDAO {
 
-    // CREATE
+    private final DatabaseManager dbManager;
+
+    public ExpenseDAO() {
+        this.dbManager = new DatabaseManager();
+    }
+
+    // Add expense
     public void addExpense(Expense expense) {
         String sql = "INSERT INTO expenses (category, amount, date, note) VALUES (?, ?, ?, ?)";
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, expense.getCategory());
-            pstmt.setDouble(2, expense.getAmount());
-            pstmt.setString(3, expense.getDate());
-            pstmt.setString(4, expense.getNote());
+            stmt.setString(1, expense.getCategory());
+            stmt.setDouble(2, expense.getAmount());
+            stmt.setString(3, expense.getDate());
+            stmt.setString(4, expense.getNote());
 
-            pstmt.executeUpdate();
-            System.out.println("✔ Expense added: " + expense);
+            stmt.executeUpdate();
+            System.out.println("✔ Expense added!");
 
         } catch (SQLException e) {
             System.out.println("❌ Failed to add expense");
@@ -27,12 +33,13 @@ public class ExpenseDAO {
         }
     }
 
-    // READ
+    // Get all expenses
     public List<Expense> getExpenses() {
         List<Expense> list = new ArrayList<>();
-        String sql = "SELECT * FROM expenses";
 
-        try (Connection conn = DatabaseManager.getConnection();
+        String sql = "SELECT * FROM expenses ORDER BY date DESC";
+
+        try (Connection conn = dbManager.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -54,17 +61,16 @@ public class ExpenseDAO {
         return list;
     }
 
-    // DELETE
+    // Delete expense
     public void deleteExpense(int id) {
         String sql = "DELETE FROM expenses WHERE id = ?";
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            pstmt.setInt(1, id);
-            pstmt.executeUpdate();
-
-            System.out.println("✔ Expense deleted (ID: " + id + ")");
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+            System.out.println("✔ Expense deleted!");
 
         } catch (SQLException e) {
             System.out.println("❌ Failed to delete expense");
