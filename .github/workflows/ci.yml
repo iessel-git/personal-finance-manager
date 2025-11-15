@@ -26,3 +26,8 @@ jobs:
 
       - name: Run Tests
         run: mvn test
+      - name: Run Finance App
+        run: |
+          java --enable-native-access=ALL-UNNAMED \
+            -cp target/financeapp-1.0-SNAPSHOT.jar \
+            com.cse.financeapp.App
