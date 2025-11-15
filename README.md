@@ -78,8 +78,8 @@ DevOps / Tools
 
 personal-finance-manager/
 
- backend/
-   src/main/java/com/financeapp/...
+ backend
+   src/main/java/com/financeapp/
    src/main/resources/
    pom.xml
 
