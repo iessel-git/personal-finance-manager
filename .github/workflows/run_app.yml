@@ -1,5 +1,4 @@
 name: Run Java App
-
 on:
   push:
     branches: [ main ]
