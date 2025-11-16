@@ -52,7 +52,7 @@ This project serves as a portfolio-ready, production-style application.
 
  Backend
 
-* Java 17
+* Java 21
 * Spring Boot (Web, Data JPA, Security)
 * Maven
 * REST API architecture
