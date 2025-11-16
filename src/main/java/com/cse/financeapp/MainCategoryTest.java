@@ -7,20 +7,13 @@ import com.cse.financeapp.service.SupabaseClient;
 import java.util.List;
 
 public class MainCategoryTest {
-    public static void main(String[] args) {
-        // Initialize Supabase client
+    public static void main(String[] args) throws Exception {
+
         SupabaseClient client = new SupabaseClient();
         CategoryRepository categoryRepo = new CategoryRepository(client);
 
         System.out.println("\n=== Adding Test Category ===");
-
-        // Create test category
-        Category testCategory = new Category(
-                0,
-                "Test Category",
-                "This is a test category"
-        );
-
+        Category testCategory = new Category(0, "Test Category", "Category description");
         categoryRepo.addCategory(testCategory);
         System.out.println("✔ Category added!");
 
@@ -30,7 +23,6 @@ public class MainCategoryTest {
             System.out.println(c.getId() + " | " + c.getName() + " | " + c.getDescription());
         }
 
-        // Optional: delete last added category
         if (!categories.isEmpty()) {
             int deleteId = categories.get(categories.size() - 1).getId();
             System.out.println("\n=== Deleting Category with ID " + deleteId + " ===");
