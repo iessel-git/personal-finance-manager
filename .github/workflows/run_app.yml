@@ -24,4 +24,4 @@ jobs:
         run: |
           java \
             -cp target/financeapp-1.0-SNAPSHOT.jar \
-            com.example.financeapp.Main
+            com.cse.financeapp.Main
