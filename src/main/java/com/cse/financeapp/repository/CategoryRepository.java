@@ -2,54 +2,34 @@ package com.cse.financeapp.repository;
 
 import com.cse.financeapp.models.Category;
 import com.cse.financeapp.service.SupabaseClient;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
-import java.util.ArrayList;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import java.util.List;
 
 public class CategoryRepository {
+
     private final SupabaseClient client;
+    private final Gson gson = new Gson();
 
     public CategoryRepository(SupabaseClient client) {
         this.client = client;
     }
 
-    // Add new category
+    // Add a category
     public void addCategory(Category category) throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("name", category.getName());
-        json.put("description", category.getDescription());
-        client.insert("categories", json.toString());
+        String jsonBody = gson.toJson(category);
+        client.insert("categories", jsonBody);
     }
 
     // Get all categories
-    public List<Category> getCategories() throws Exception {
-        List<Category> list = new ArrayList<>();
-        String response = client.select("categories");
-        JSONArray arr = new JSONArray(response);
-
-        for (int i = 0; i < arr.length(); i++) {
-            JSONObject obj = arr.getJSONObject(i);
-            list.add(new Category(
-                    obj.getInt("id"),
-                    obj.getString("name"),
-                    obj.optString("description", "")
-            ));
-        }
-        return list;
+    public List<Category> getAllCategories() throws Exception {
+        String json = client.select("categories");
+        return gson.fromJson(json, new TypeToken<List<Category>>(){}.getType());
     }
 
-    // Update category
-    public void updateCategory(int id, Category category) throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("name", category.getName());
-        json.put("description", category.getDescription());
-        client.update("categories?id=eq." + id, json.toString());
-    }
-
-    // Delete category
+    // Delete category by ID
     public void deleteCategory(int id) throws Exception {
-        client.delete("categories?id=eq." + id);
+        client.delete("categories", id);
     }
 }
