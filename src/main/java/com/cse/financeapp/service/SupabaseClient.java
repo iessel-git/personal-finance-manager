@@ -7,14 +7,17 @@ import java.net.http.HttpResponse;
 
 public class SupabaseClient {
 
-    private static final String SUPABASE_URL = "https://ggjvorvnrrbqixszpemk.supabase.co";
-    private static final String SUPABASE_API_KEY =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnanZvcnZucnJicWl4c3pwZW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNDAzNzcsImV4cCI6MjA3ODgxNjM3N30.jPcgtyajOl0qM35XCPWAygmWeH2ecHMTMxBOCF5IVtU";
+    private static final String SUPABASE_URL = System.getenv("SUPABASE_URL");
+    private static final String SUPABASE_API_KEY = System.getenv("SUPABASE_KEY");
 
     private final HttpClient client;
 
     public SupabaseClient() {
         this.client = HttpClient.newHttpClient();
+
+        if (SUPABASE_URL == null || SUPABASE_API_KEY == null) {
+            throw new RuntimeException("❌ Missing environment variables: SUPABASE_URL or SUPABASE_KEY");
+        }
     }
 
     // ---------------------------------------------------------
@@ -77,3 +80,4 @@ public class SupabaseClient {
         return response.body();
     }
 }
+
