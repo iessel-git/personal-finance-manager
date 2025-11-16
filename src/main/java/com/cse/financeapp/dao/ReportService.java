@@ -16,24 +16,32 @@ public class ReportService {
         this.client = client;
     }
 
-    // -------------------------------------------------------------
-    // REPORT: TOTAL SPENT BY CATEGORY
-    // -------------------------------------------------------------
     public List<Report> getTotalSpentByCategory() {
         List<Report> list = new ArrayList<>();
 
         try {
-            // Correct RPC call — no /rest/v1/
-            String resp = client.post("rpc/total_spent_by_category", "{}");
+            // Supabase allows SELECT with aggregation using query params
+            String response = client.select("expenses?select=category_id,amount");
+            JSONArray arr = new JSONArray(response);
 
-            JSONArray arr = new JSONArray(resp);
+            // Aggregate totals manually
+            JSONObject totals = new JSONObject();
 
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.getJSONObject(i);
 
+                int catId = o.getInt("category_id");
+                double amount = o.getDouble("amount");
+
+                totals.put(String.valueOf(catId),
+                        totals.optDouble(String.valueOf(catId), 0) + amount);
+            }
+
+            // Convert to Report objects
+            for (String key : totals.keySet()) {
                 list.add(new Report(
-                        o.getString("category"),
-                        o.getDouble("total_spent")
+                        "Category " + key,
+                        totals.getDouble(key)
                 ));
             }
 
