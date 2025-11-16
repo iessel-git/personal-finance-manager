@@ -1,4 +1,3 @@
-
 package com.cse.financeapp.dao;
 
 import com.cse.financeapp.models.Report;
@@ -17,11 +16,15 @@ public class ReportService {
         this.client = client;
     }
 
+    // -------------------------------------------------------------
+    // REPORT: TOTAL SPENT BY CATEGORY
+    // -------------------------------------------------------------
     public List<Report> getTotalSpentByCategory() {
         List<Report> list = new ArrayList<>();
 
         try {
-            String resp = client.get("/rest/v1/rpc/total_spent_by_category");
+            // Correct RPC call — no /rest/v1/
+            String resp = client.post("rpc/total_spent_by_category", "{}");
 
             JSONArray arr = new JSONArray(resp);
 
