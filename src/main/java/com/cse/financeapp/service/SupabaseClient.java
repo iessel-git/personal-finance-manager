@@ -20,15 +20,15 @@ public class SupabaseClient {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // SAFETY WRAPPER: Ensures response is always an array ("[]")
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------
+    // Ensures API response is always an array
+    // ---------------------------------------------------------
     public String safeArrayResponse(String response) {
         if (response == null) return "[]";
 
         String trimmed = response.trim();
 
-        // If Supabase returns error object or empty object
+        // Supabase error or empty object → treat as empty array
         if (trimmed.startsWith("{")) {
             System.out.println("⚠ Supabase returned OBJECT instead of ARRAY: " + trimmed);
             return "[]";
@@ -37,9 +37,9 @@ public class SupabaseClient {
         return trimmed;
     }
 
-    // ---------------------------------------------------------------------
-    // Generic GET (Select)
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------
+    // SELECT
+    // ---------------------------------------------------------
     public String select(String table) throws Exception {
         String url = SUPABASE_URL + "/rest/v1/" + table + "?select=*";
 
@@ -57,9 +57,9 @@ public class SupabaseClient {
         return safeArrayResponse(response.body());
     }
 
-    // ---------------------------------------------------------------------
-    // Generic INSERT
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------
+    // INSERT
+    // ---------------------------------------------------------
     public String insert(String table, String jsonBody) throws Exception {
         String url = SUPABASE_URL + "/rest/v1/" + table;
 
@@ -68,6 +68,7 @@ public class SupabaseClient {
                 .header("apikey", SUPABASE_API_KEY)
                 .header("Authorization", "Bearer " + SUPABASE_API_KEY)
                 .header("Content-Type", "application/json")
+                .header("Prefer", "return=representation")   // << REQUIRED
                 .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                 .build();
 
@@ -77,9 +78,9 @@ public class SupabaseClient {
         return safeArrayResponse(response.body());
     }
 
-    // ---------------------------------------------------------------------
-    // Generic DELETE by ID
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------
+    // DELETE
+    // ---------------------------------------------------------
     public String delete(String table, int id) throws Exception {
         String url = SUPABASE_URL + "/rest/v1/" + table + "?id=eq." + id;
 
@@ -88,6 +89,7 @@ public class SupabaseClient {
                 .header("apikey", SUPABASE_API_KEY)
                 .header("Authorization", "Bearer " + SUPABASE_API_KEY)
                 .header("Content-Type", "application/json")
+                .header("Prefer", "return=representation")   // good practice
                 .DELETE()
                 .build();
 
@@ -97,9 +99,9 @@ public class SupabaseClient {
         return safeArrayResponse(response.body());
     }
 
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------
     // UPSERT (Insert or Update)
-    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------
     public String upsert(String table, String jsonBody) throws Exception {
         String url = SUPABASE_URL + "/rest/v1/" + table + "?on_conflict=id";
 
@@ -108,6 +110,7 @@ public class SupabaseClient {
                 .header("apikey", SUPABASE_API_KEY)
                 .header("Authorization", "Bearer " + SUPABASE_API_KEY)
                 .header("Content-Type", "application/json")
+                .header("Prefer", "return=representation")   // << REQUIRED
                 .method("POST", HttpRequest.BodyPublishers.ofString(jsonBody))
                 .build();
 
