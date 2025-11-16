@@ -1,10 +1,20 @@
 package com.cse.financeapp;
 
+import java.io.File;
+
 public class App {
 
     public static void main(String[] args) {
 
         System.out.println("Starting Finance App...");
+
+        // -------------------------------------
+        // Ensure DB directory exists
+        // -------------------------------------
+        File dbDir = new File("data");
+        if (!dbDir.exists()) {
+            dbDir.mkdirs();
+        }
 
         // -------------------------------------
         // Initialize Database using DatabaseManager
@@ -30,7 +40,11 @@ public class App {
         dao.getExpenses().forEach(System.out::println);
 
         System.out.println("\nFinance App finished.");
-        System.out.println("DB Path: " + new java.io.File("finance.db").getAbsolutePath());
 
+        // -------------------------------------
+        // Print actual DB location
+        // -------------------------------------
+        File dbFile = new File("data/finance.db");
+        System.out.println("DB Path: " + dbFile.getAbsolutePath());
     }
 }
