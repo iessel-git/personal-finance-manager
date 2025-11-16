@@ -8,7 +8,8 @@ import java.io.InputStream;
 
 public class DatabaseManager {
 
-    private static final String DB_URL = "jdbc:sqlite:finance.db";
+    private static final String DB_URL = "jdbc:sqlite:data/finance.db";
+
 
     /**
      * Initializes:
