@@ -1,6 +1,6 @@
 package com.cse.financeapp.repository;
 
-import com.cse.financeapp.model.Category;
+import com.cse.financeapp.models.Category;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
