@@ -1,8 +1,8 @@
-package com.example.financeapp;
+package com.cse.financeapp;
 
-import com.example.financeapp.dao.ExpenseService;
-import com.example.financeapp.models.Expense;
-import com.example.financeapp.service.SupabaseClient;
+import com.cse.financeapp.dao.ExpenseService;
+import com.cse.financeapp.models.Expense;
+import com.cse.financeapp.service.SupabaseClient;
 
 import java.time.LocalDate;
 import java.util.List;
