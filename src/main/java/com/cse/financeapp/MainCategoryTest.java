@@ -1,33 +1,33 @@
 package com.cse.financeapp;
 
+import com.cse.financeapp.dao.CategoryService;
 import com.cse.financeapp.models.Category;
-import com.cse.financeapp.repository.CategoryRepository;
 import com.cse.financeapp.service.SupabaseClient;
 
 import java.util.List;
 
 public class MainCategoryTest {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
+        // Use existing SupabaseClient with hardcoded key
         SupabaseClient client = new SupabaseClient();
-        CategoryRepository categoryRepo = new CategoryRepository(client);
+        CategoryService categoryService = new CategoryService(client);
 
         System.out.println("\n=== Adding Test Category ===");
-        Category testCategory = new Category(0, "Test Category", "Category description");
-        categoryRepo.addCategory(testCategory);
-        System.out.println("✔ Category added!");
+        Category testCategory = new Category(0, "Test Category", "Just a test");
+        categoryService.addCategory(testCategory);
 
         System.out.println("\n=== Fetching All Categories ===");
-        List<Category> categories = categoryRepo.getCategories();
-        for (Category c : categories) {
-            System.out.println(c.getId() + " | " + c.getName() + " | " + c.getDescription());
-        }
+        List<Category> categories = categoryService.getCategories();
+        if (categories != null) {
+            for (Category c : categories) {
+                System.out.println(c.getId() + " | " + c.getName() + " | " + c.getDescription());
+            }
 
-        if (!categories.isEmpty()) {
+            // Optional: delete last inserted category
             int deleteId = categories.get(categories.size() - 1).getId();
-            System.out.println("\n=== Deleting Category with ID " + deleteId + " ===");
-            categoryRepo.deleteCategory(deleteId);
-            System.out.println("✔ Category deleted!");
+            System.out.println("\n=== Deleting Category ID " + deleteId + " ===");
+            categoryService.deleteCategory(deleteId);
         }
     }
 }
