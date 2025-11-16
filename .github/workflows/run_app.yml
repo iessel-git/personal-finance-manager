@@ -30,4 +30,4 @@ jobs:
 
       # 4️⃣ Run MainCategoryTest
       - name: Run Category Test
-        run: mvn exec:java -Dexec.mainClass="com.cse.financeapp.MainCategoryTest"
+        run: mvn exec:java -Dexec.mainClass="com.cse.financeapp.MainFinanceTest"
