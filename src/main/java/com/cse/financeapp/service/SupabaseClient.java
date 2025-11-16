@@ -20,15 +20,14 @@ public class SupabaseClient {
         }
     }
 
-    // ---------------------------------------------------------
-    // Ensures API response is always an array
-    // ---------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // SAFETY WRAPPER — ensures response is always an array ("[]")
+    // ---------------------------------------------------------------------
     public String safeArrayResponse(String response) {
         if (response == null) return "[]";
-
         String trimmed = response.trim();
 
-        // Supabase error or empty object → treat as empty array
+        // Supabase error responses come as JSON OBJECTS. Convert to empty array.
         if (trimmed.startsWith("{")) {
             System.out.println("⚠ Supabase returned OBJECT instead of ARRAY: " + trimmed);
             return "[]";
@@ -37,9 +36,9 @@ public class SupabaseClient {
         return trimmed;
     }
 
-    // ---------------------------------------------------------
-    // SELECT
-    // ---------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // SELECT TABLE
+    // ---------------------------------------------------------------------
     public String select(String table) throws Exception {
         String url = SUPABASE_URL + "/rest/v1/" + table + "?select=*";
 
@@ -57,9 +56,9 @@ public class SupabaseClient {
         return safeArrayResponse(response.body());
     }
 
-    // ---------------------------------------------------------
+    // ---------------------------------------------------------------------
     // INSERT
-    // ---------------------------------------------------------
+    // ---------------------------------------------------------------------
     public String insert(String table, String jsonBody) throws Exception {
         String url = SUPABASE_URL + "/rest/v1/" + table;
 
@@ -68,7 +67,6 @@ public class SupabaseClient {
                 .header("apikey", SUPABASE_API_KEY)
                 .header("Authorization", "Bearer " + SUPABASE_API_KEY)
                 .header("Content-Type", "application/json")
-                .header("Prefer", "return=representation")   // << REQUIRED
                 .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                 .build();
 
@@ -78,9 +76,9 @@ public class SupabaseClient {
         return safeArrayResponse(response.body());
     }
 
-    // ---------------------------------------------------------
-    // DELETE
-    // ---------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // DELETE by ID
+    // ---------------------------------------------------------------------
     public String delete(String table, int id) throws Exception {
         String url = SUPABASE_URL + "/rest/v1/" + table + "?id=eq." + id;
 
@@ -88,8 +86,6 @@ public class SupabaseClient {
                 .uri(URI.create(url))
                 .header("apikey", SUPABASE_API_KEY)
                 .header("Authorization", "Bearer " + SUPABASE_API_KEY)
-                .header("Content-Type", "application/json")
-                .header("Prefer", "return=representation")   // good practice
                 .DELETE()
                 .build();
 
@@ -99,9 +95,28 @@ public class SupabaseClient {
         return safeArrayResponse(response.body());
     }
 
-    // ---------------------------------------------------------
-    // UPSERT (Insert or Update)
-    // ---------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // NEW: DELETE by ANY COLUMN
+    // ---------------------------------------------------------------------
+    public String deleteWhere(String table, String column, String value) throws Exception {
+        String url = SUPABASE_URL + "/rest/v1/" + table + "?" + column + "=eq." + value;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_API_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_API_KEY)
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response =
+                client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        return safeArrayResponse(response.body());
+    }
+
+    // ---------------------------------------------------------------------
+    // UPSERT
+    // ---------------------------------------------------------------------
     public String upsert(String table, String jsonBody) throws Exception {
         String url = SUPABASE_URL + "/rest/v1/" + table + "?on_conflict=id";
 
@@ -110,7 +125,6 @@ public class SupabaseClient {
                 .header("apikey", SUPABASE_API_KEY)
                 .header("Authorization", "Bearer " + SUPABASE_API_KEY)
                 .header("Content-Type", "application/json")
-                .header("Prefer", "return=representation")   // << REQUIRED
                 .method("POST", HttpRequest.BodyPublishers.ofString(jsonBody))
                 .build();
 
