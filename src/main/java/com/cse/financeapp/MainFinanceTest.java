@@ -6,8 +6,8 @@ import com.cse.financeapp.repository.CategoryRepository;
 import com.cse.financeapp.dao.ExpenseService;
 import com.cse.financeapp.service.SupabaseClient;
 
-import java.util.List;
 import java.time.LocalDate;
+import java.util.List;
 
 public class MainFinanceTest {
 
@@ -15,7 +15,7 @@ public class MainFinanceTest {
 
         System.out.println("\n========== PERSONAL FINANCE SYSTEM TEST ==========\n");
 
-        // Initialize Supabase client (with your hardcoded credentials)
+        // Initialize client and repos
         SupabaseClient client = new SupabaseClient();
         CategoryRepository categoryRepo = new CategoryRepository(client);
         ExpenseService expenseService = new ExpenseService(client);
@@ -23,71 +23,97 @@ public class MainFinanceTest {
         // -----------------------------------------------------
         // 1️⃣ CATEGORY TEST
         // -----------------------------------------------------
-        System.out.println("=== Adding Test Category ===");
+        System.out.println("=== CATEGORY TEST ===");
+
         Category testCategory = new Category(
                 0,
                 "CombinedTestCat",
                 "For combined integration test"
         );
 
+        // Add category
         categoryRepo.addCategory(testCategory);
         System.out.println("✔ Category added!");
 
         // Fetch categories
         System.out.println("\n=== Fetching Categories ===");
         List<Category> categories = categoryRepo.getAllCategories();
-        for (Category c : categories) {
-            System.out.println(c.getId() + " | " + c.getName() + " | " + c.getDescription());
-        }
 
-        int insertedCategoryId = categories.get(categories.size() - 1).getId();
+        printCategories(categories);
+
+        // Track last category
+        int newCategoryId = categories.get(categories.size() - 1).getId();
 
 
         // -----------------------------------------------------
         // 2️⃣ EXPENSE TEST
         // -----------------------------------------------------
-        System.out.println("\n=== Adding Test Expense ===");
-        Expense testExpense = new Expense(
+        System.out.println("\n=== EXPENSE TEST ===");
+
+        Expense expense1 = new Expense(
                 0,
                 "Test Expense Linked",
                 20.75,
                 LocalDate.now(),
-                insertedCategoryId   // link to created category
+                newCategoryId
         );
 
-        expenseService.addExpense(testExpense);
+        expenseService.addExpense(expense1);
         System.out.println("✔ Expense added!");
 
         // Fetch expenses
         System.out.println("\n=== Fetching Expenses ===");
         List<Expense> expenses = expenseService.getExpenses();
-        for (Expense e : expenses) {
-            System.out.println(
-                e.getId() + " | " + e.getDescription() + " | " +
-                e.getAmount() + " | " + e.getDate() +
-                " | Category: " + e.getCategoryId()
-            );
-        }
 
-        int insertedExpenseId = expenses.get(expenses.size() - 1).getId();
+        printExpenses(expenses);
+
+        // Track last expense
+        int lastExpenseId = expenses.get(expenses.size() - 1).getId();
 
 
         // -----------------------------------------------------
-        // 3️⃣ CLEANUP TEST DATA
+        // 3️⃣ CLEAN UP (Delete created test data)
         // -----------------------------------------------------
         System.out.println("\n=== CLEANUP: Deleting Test Records ===");
 
-        // Delete expense first → avoids FK constraint failures
-        System.out.println("Deleting Expense ID: " + insertedExpenseId);
-        expenseService.deleteExpense(insertedExpenseId);
+        System.out.println("Deleting Expense ID: " + lastExpenseId);
+        expenseService.deleteExpense(lastExpenseId);
         System.out.println("✔ Expense deleted!");
 
-        System.out.println("Deleting Category ID: " + insertedCategoryId);
-        categoryRepo.deleteCategory(insertedCategoryId);
+        System.out.println("Deleting Category ID: " + newCategoryId);
+        categoryRepo.deleteCategory(newCategoryId);
         System.out.println("✔ Category deleted!");
 
-
-        // -----------------------------------------------------
         System.out.println("\n========== TEST COMPLETE ==========\n");
+    }
+
+
+    // -----------------------------------------------------
+    // Helper: Print categories neatly
+    // -----------------------------------------------------
+    private static void printCategories(List<Category> categories) {
+        System.out.println("ID | Name | Description");
+        System.out.println("----------------------------------");
+        for (Category c : categories) {
+            System.out.println(c.getId() + " | " + c.getName() + " | " + c.getDescription());
+        }
+    }
+
+    // -----------------------------------------------------
+    // Helper: Print expenses neatly
+    // -----------------------------------------------------
+    private static void printExpenses(List<Expense> expenses) {
+        System.out.println("ID | Description | Amount | Date | Category");
+        System.out.println("-------------------------------------------------------------");
+
+        for (Expense e : expenses) {
+            System.out.println(
+                e.getId() + " | " +
+                e.getDescription() + " | " +
+                e.getAmount() + " | " +
+                e.getDate() + " | Category: " +
+                e.getCategoryId()
+            );
+        }
     }
 }
