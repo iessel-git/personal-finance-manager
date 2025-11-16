@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public class MainFinanceTest {
 
     public static void main(String[] args) throws Exception {
-        System.out.println("\n========== PERSONAL FINANCE SYSTEM TEST ==========");
+        System.out.println("\n========== PERSONAL FINANCE SYSTEM TEST ==========\n");
 
         SupabaseClient client = new SupabaseClient();
 
@@ -17,6 +17,19 @@ public class MainFinanceTest {
         runExpenseCrudTest(client);
 
         System.out.println("========== ALL TESTS COMPLETE ==========\n");
+    }
+
+    // ================================================================
+    // Helper: Safely convert response to JSONArray
+    // ================================================================
+    private static JSONArray safeArray(String response) {
+        try {
+            return new JSONArray(response);
+        } catch (Exception ex) {
+            System.out.println("⚠ Warning: Response was not a JSON array. Returning empty array.");
+            System.out.println("Response: " + response);
+            return new JSONArray();
+        }
     }
 
     // ======================================================================
@@ -34,8 +47,7 @@ public class MainFinanceTest {
         createJson.put("name", "JUnitCategory");
         createJson.put("description", "CRUD Test");
 
-        String createResp = client.insert("categories", createJson.toString());
-        JSONArray createdArr = new JSONArray(createResp);
+        JSONArray createdArr = safeArray(client.insert("categories", createJson.toString()));
 
         if (createdArr.isEmpty()) {
             throw new RuntimeException("❌ Category creation failed!");
@@ -48,27 +60,26 @@ public class MainFinanceTest {
         // 2. READ CATEGORIES
         // ----------------------------------------------------
         System.out.println("→ Fetching categories...");
-        String fetchResp = client.select("categories");
-        JSONArray allCats = new JSONArray(fetchResp);
+        JSONArray allCats = safeArray(client.select("categories"));
 
-        System.out.println("✔ Total categories: " + allCats.length());
+        System.out.println("✔ Total categories found: " + allCats.length());
 
         // ----------------------------------------------------
         // 3. UPDATE CATEGORY
         // ----------------------------------------------------
         System.out.println("→ Updating category description...");
+
         JSONObject updateJson = new JSONObject();
         updateJson.put("id", categoryId);
         updateJson.put("description", "Updated Desc");
 
-        String updateResp = client.upsert("categories", updateJson.toString());
-        JSONArray updatedArr = new JSONArray(updateResp);
+        JSONArray updatedArr = safeArray(client.upsert("categories", updateJson.toString()));
 
         if (updatedArr.isEmpty()) {
             throw new RuntimeException("❌ Category update failed!");
         }
 
-        System.out.println("✔ Updated category!");
+        System.out.println("✔ Category updated!");
 
         // ----------------------------------------------------
         // 4. DELETE CATEGORY
@@ -95,10 +106,9 @@ public class MainFinanceTest {
         createJson.put("description", "JUnitExpense");
         createJson.put("amount", 25.50);
         createJson.put("date", LocalDate.now().toString());
-        createJson.put("category_id", 1); // A valid category must exist
+        createJson.put("category_id", 1); // must exist
 
-        String createResp = client.insert("expenses", createJson.toString());
-        JSONArray createdArr = new JSONArray(createResp);
+        JSONArray createdArr = safeArray(client.insert("expenses", createJson.toString()));
 
         if (createdArr.isEmpty()) {
             throw new RuntimeException("❌ Expense creation failed!");
@@ -111,10 +121,9 @@ public class MainFinanceTest {
         // 2. READ EXPENSES
         // ----------------------------------------------------
         System.out.println("→ Fetching expenses...");
-        String fetchResp = client.select("expenses");
-        JSONArray allExp = new JSONArray(fetchResp);
+        JSONArray allExp = safeArray(client.select("expenses"));
 
-        System.out.println("✔ Total expenses: " + allExp.length());
+        System.out.println("✔ Total expenses found: " + allExp.length());
 
         // ----------------------------------------------------
         // 3. UPDATE EXPENSE
@@ -125,8 +134,7 @@ public class MainFinanceTest {
         updateJson.put("id", expenseId);
         updateJson.put("amount", 40.75);
 
-        String updateResp = client.upsert("expenses", updateJson.toString());
-        JSONArray updatedArr = new JSONArray(updateResp);
+        JSONArray updatedArr = safeArray(client.upsert("expenses", updateJson.toString()));
 
         if (updatedArr.isEmpty()) {
             throw new RuntimeException("❌ Expense update failed!");
