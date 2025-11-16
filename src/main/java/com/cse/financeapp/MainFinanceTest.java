@@ -1,119 +1,146 @@
 package com.cse.financeapp;
 
-import com.cse.financeapp.models.Category;
-import com.cse.financeapp.models.Expense;
-import com.cse.financeapp.repository.CategoryRepository;
-import com.cse.financeapp.dao.ExpenseService;
 import com.cse.financeapp.service.SupabaseClient;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.time.LocalDate;
-import java.util.List;
 
 public class MainFinanceTest {
 
     public static void main(String[] args) throws Exception {
+        System.out.println("\n========== PERSONAL FINANCE SYSTEM TEST ==========");
 
-        System.out.println("\n========== PERSONAL FINANCE SYSTEM TEST ==========\n");
-
-        // Initialize client and repos
         SupabaseClient client = new SupabaseClient();
-        CategoryRepository categoryRepo = new CategoryRepository(client);
-        ExpenseService expenseService = new ExpenseService(client);
 
-        // -----------------------------------------------------
-        // 1️⃣ CATEGORY TEST
-        // -----------------------------------------------------
-        System.out.println("=== CATEGORY TEST ===");
+        runCategoryCrudTest(client);
+        runExpenseCrudTest(client);
 
-        Category testCategory = new Category(
-                0,
-                "CombinedTestCat",
-                "For combined integration test"
-        );
+        System.out.println("========== ALL TESTS COMPLETE ==========\n");
+    }
 
-        // Add category
-        categoryRepo.addCategory(testCategory);
-        System.out.println("✔ Category added!");
+    // ======================================================================
+    // CATEGORY CRUD TEST
+    // ======================================================================
+    public static void runCategoryCrudTest(SupabaseClient client) throws Exception {
+        System.out.println("\n========== CATEGORY CRUD TEST ==========");
 
-        // Fetch categories
-        System.out.println("\n=== Fetching Categories ===");
-        List<Category> categories = categoryRepo.getAllCategories();
+        // ----------------------------------------------------
+        // 1. CREATE CATEGORY
+        // ----------------------------------------------------
+        System.out.println("→ Creating test category...");
 
-        printCategories(categories);
+        JSONObject createJson = new JSONObject();
+        createJson.put("name", "JUnitCategory");
+        createJson.put("description", "CRUD Test");
 
-        // Track last category
-        int newCategoryId = categories.get(categories.size() - 1).getId();
+        String createResp = client.insert("categories", createJson.toString());
+        JSONArray createdArr = new JSONArray(createResp);
 
+        if (createdArr.isEmpty()) {
+            throw new RuntimeException("❌ Category creation failed!");
+        }
 
-        // -----------------------------------------------------
-        // 2️⃣ EXPENSE TEST
-        // -----------------------------------------------------
-        System.out.println("\n=== EXPENSE TEST ===");
+        int categoryId = createdArr.getJSONObject(0).getInt("id");
+        System.out.println("✔ Created category ID: " + categoryId);
 
-        Expense expense1 = new Expense(
-                0,
-                "Test Expense Linked",
-                20.75,
-                LocalDate.now(),
-                newCategoryId
-        );
+        // ----------------------------------------------------
+        // 2. READ CATEGORIES
+        // ----------------------------------------------------
+        System.out.println("→ Fetching categories...");
+        String fetchResp = client.select("categories");
+        JSONArray allCats = new JSONArray(fetchResp);
 
-        expenseService.addExpense(expense1);
-        System.out.println("✔ Expense added!");
+        System.out.println("✔ Total categories: " + allCats.length());
 
-        // Fetch expenses
-        System.out.println("\n=== Fetching Expenses ===");
-        List<Expense> expenses = expenseService.getExpenses();
+        // ----------------------------------------------------
+        // 3. UPDATE CATEGORY
+        // ----------------------------------------------------
+        System.out.println("→ Updating category description...");
+        JSONObject updateJson = new JSONObject();
+        updateJson.put("id", categoryId);
+        updateJson.put("description", "Updated Desc");
 
-        printExpenses(expenses);
+        String updateResp = client.upsert("categories", updateJson.toString());
+        JSONArray updatedArr = new JSONArray(updateResp);
 
-        // Track last expense
-        int lastExpenseId = expenses.get(expenses.size() - 1).getId();
+        if (updatedArr.isEmpty()) {
+            throw new RuntimeException("❌ Category update failed!");
+        }
 
+        System.out.println("✔ Updated category!");
 
-        // -----------------------------------------------------
-        // 3️⃣ CLEAN UP (Delete created test data)
-        // -----------------------------------------------------
-        System.out.println("\n=== CLEANUP: Deleting Test Records ===");
-
-        System.out.println("Deleting Expense ID: " + lastExpenseId);
-        expenseService.deleteExpense(lastExpenseId);
-        System.out.println("✔ Expense deleted!");
-
-        System.out.println("Deleting Category ID: " + newCategoryId);
-        categoryRepo.deleteCategory(newCategoryId);
+        // ----------------------------------------------------
+        // 4. DELETE CATEGORY
+        // ----------------------------------------------------
+        System.out.println("→ Deleting test category ID: " + categoryId);
+        client.delete("categories", categoryId);
         System.out.println("✔ Category deleted!");
 
-        System.out.println("\n========== TEST COMPLETE ==========\n");
+        System.out.println("========== CATEGORY TEST COMPLETE ==========\n");
     }
 
+    // ======================================================================
+    // EXPENSE CRUD TEST
+    // ======================================================================
+    public static void runExpenseCrudTest(SupabaseClient client) throws Exception {
+        System.out.println("\n========== EXPENSE CRUD TEST ==========");
 
-    // -----------------------------------------------------
-    // Helper: Print categories neatly
-    // -----------------------------------------------------
-    private static void printCategories(List<Category> categories) {
-        System.out.println("ID | Name | Description");
-        System.out.println("----------------------------------");
-        for (Category c : categories) {
-            System.out.println(c.getId() + " | " + c.getName() + " | " + c.getDescription());
+        // ----------------------------------------------------
+        // 1. CREATE EXPENSE
+        // ----------------------------------------------------
+        System.out.println("→ Creating test expense...");
+
+        JSONObject createJson = new JSONObject();
+        createJson.put("description", "JUnitExpense");
+        createJson.put("amount", 25.50);
+        createJson.put("date", LocalDate.now().toString());
+        createJson.put("category_id", 1); // A valid category must exist
+
+        String createResp = client.insert("expenses", createJson.toString());
+        JSONArray createdArr = new JSONArray(createResp);
+
+        if (createdArr.isEmpty()) {
+            throw new RuntimeException("❌ Expense creation failed!");
         }
-    }
 
-    // -----------------------------------------------------
-    // Helper: Print expenses neatly
-    // -----------------------------------------------------
-    private static void printExpenses(List<Expense> expenses) {
-        System.out.println("ID | Description | Amount | Date | Category");
-        System.out.println("-------------------------------------------------------------");
+        int expenseId = createdArr.getJSONObject(0).getInt("id");
+        System.out.println("✔ Created expense ID: " + expenseId);
 
-        for (Expense e : expenses) {
-            System.out.println(
-                e.getId() + " | " +
-                e.getDescription() + " | " +
-                e.getAmount() + " | " +
-                e.getDate() + " | Category: " +
-                e.getCategoryId()
-            );
+        // ----------------------------------------------------
+        // 2. READ EXPENSES
+        // ----------------------------------------------------
+        System.out.println("→ Fetching expenses...");
+        String fetchResp = client.select("expenses");
+        JSONArray allExp = new JSONArray(fetchResp);
+
+        System.out.println("✔ Total expenses: " + allExp.length());
+
+        // ----------------------------------------------------
+        // 3. UPDATE EXPENSE
+        // ----------------------------------------------------
+        System.out.println("→ Updating expense amount...");
+
+        JSONObject updateJson = new JSONObject();
+        updateJson.put("id", expenseId);
+        updateJson.put("amount", 40.75);
+
+        String updateResp = client.upsert("expenses", updateJson.toString());
+        JSONArray updatedArr = new JSONArray(updateResp);
+
+        if (updatedArr.isEmpty()) {
+            throw new RuntimeException("❌ Expense update failed!");
         }
+
+        System.out.println("✔ Expense updated!");
+
+        // ----------------------------------------------------
+        // 4. DELETE EXPENSE
+        // ----------------------------------------------------
+        System.out.println("→ Deleting test expense ID: " + expenseId);
+        client.delete("expenses", expenseId);
+        System.out.println("✔ Expense deleted!");
+
+        System.out.println("========== EXPENSE TEST COMPLETE ==========\n");
     }
 }
