@@ -80,5 +80,25 @@ public class SupabaseClient {
 
         return response.body();
     }
+  // ---------------------------------------------------------
+// UPSERT (Insert or Update)
+// ---------------------------------------------------------
+public String upsert(String table, String jsonBody) throws Exception {
+    String url = SUPABASE_URL + "/rest/v1/" + table + "?on_conflict=id";
+
+    HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .header("apikey", SUPABASE_API_KEY)
+            .header("Authorization", "Bearer " + SUPABASE_API_KEY)
+            .header("Content-Type", "application/json")
+            .method("POST", HttpRequest.BodyPublishers.ofString(jsonBody))
+            .build();
+
+    HttpResponse<String> response =
+            client.send(request, HttpResponse.BodyHandlers.ofString());
+
+    return response.body();
+   }
+  
 }
 
