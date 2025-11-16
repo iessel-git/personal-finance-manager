@@ -1,66 +1,63 @@
 package com.cse.financeapp.repository;
 
 import com.cse.financeapp.models.Category;
-import java.sql.*;
+import com.cse.financeapp.service.SupabaseClient;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 public class CategoryRepository {
-    private final Connection conn;
+    private final SupabaseClient client;
 
-    public CategoryRepository(Connection conn) {
-        this.conn = conn;
+    public CategoryRepository(SupabaseClient client) {
+        this.client = client;
     }
 
-    // Insert new category
-    public void addCategory(Category category) throws SQLException {
-        String sql = "INSERT INTO category (name, description) VALUES (?, ?)";
+    // Add new category
+    public void addCategory(Category category) throws Exception {
+        String json = new JSONObject()
+                .put("name", category.getName())
+                .put("description", category.getDescription())
+                .toString();
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, category.getName());
-            stmt.setString(2, category.getDescription());
-            stmt.executeUpdate();
-        }
+        client.insert("categories", json);
     }
 
-    // Retrieve all categories
-    public List<Category> getAllCategories() throws SQLException {
-        String sql = "SELECT id, name, description FROM category ORDER BY id ASC";
+    // Get all categories
+    public List<Category> getAllCategories() throws Exception {
         List<Category> list = new ArrayList<>();
+        String response = client.select("categories");
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                list.add(new Category(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("description")
-                ));
-            }
+        JSONArray arr = new JSONArray(response);
+        for (int i = 0; i < arr.length(); i++) {
+            JSONObject obj = arr.getJSONObject(i);
+            list.add(new Category(
+                    obj.getInt("id"),
+                    obj.getString("name"),
+                    obj.optString("description", "")
+            ));
         }
+
         return list;
     }
 
-    // Update category
-    public void updateCategory(int id, Category category) throws SQLException {
-        String sql = "UPDATE category SET name = ?, description = ? WHERE id = ?";
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, category.getName());
-            stmt.setString(2, category.getDescription());
-            stmt.setInt(3, id);
-            stmt.executeUpdate();
-        }
+    // Delete category by ID
+    public void deleteCategory(int id) throws Exception {
+        client.delete("categories", id);
     }
 
-    // Delete category
-    public void deleteCategory(int id) throws SQLException {
-        String sql = "DELETE FROM category WHERE id = ?";
+    // Update category
+    public void updateCategory(int id, Category category) throws Exception {
+        String json = new JSONObject()
+                .put("name", category.getName())
+                .put("description", category.getDescription())
+                .toString();
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
-        }
+        // Supabase REST API requires PATCH via POST with method override
+        String url = "categories?id=eq." + id;
+        client.update(url, json); // you'll need to add an 'update' method in SupabaseClient
     }
 }
