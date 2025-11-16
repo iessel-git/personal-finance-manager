@@ -12,24 +12,17 @@ public class ExpenseDAO {
         this.dbManager = new DatabaseManager();
     }
 
-    // -------------------------------------------------------
-    // Add Expense (PostgreSQL + Supabase)
-    // -------------------------------------------------------
+    // Add expense
     public void addExpense(Expense expense) {
-
-        String sql = """
-            INSERT INTO expenses (description, amount, date, category_id, note)
-            VALUES (?, ?, ?, ?, ?)
-        """;
+        String sql = "INSERT INTO expenses (category, amount, date, note) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = dbManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, expense.getDescription());
+            stmt.setString(1, expense.getCategory());
             stmt.setDouble(2, expense.getAmount());
-            stmt.setString(3, expense.getDate());     // You may later convert to java.sql.Date
-            stmt.setInt(4, expense.getCategoryId());  // FK
-            stmt.setString(5, expense.getNote());
+            stmt.setString(3, expense.getDate());
+            stmt.setString(4, expense.getNote());
 
             stmt.executeUpdate();
             System.out.println("✔ Expense added!");
@@ -40,37 +33,24 @@ public class ExpenseDAO {
         }
     }
 
-    // -------------------------------------------------------
-    // Get All Expenses (PostgreSQL)
-    // -------------------------------------------------------
+    // Get all expenses
     public List<Expense> getExpenses() {
         List<Expense> list = new ArrayList<>();
 
-        String sql = """
-            SELECT e.id, e.description, e.amount, e.date, e.note,
-                   c.id AS category_id, c.name AS category_name
-            FROM expenses e
-            LEFT JOIN categories c ON e.category_id = c.id
-            ORDER BY e.date DESC
-        """;
+        String sql = "SELECT * FROM expenses ORDER BY id DESC";
 
         try (Connection conn = dbManager.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-
-                Expense exp = new Expense(
+                list.add(new Expense(
                         rs.getInt("id"),
-                        rs.getString("description"),
+                        rs.getString("category"),
                         rs.getDouble("amount"),
                         rs.getString("date"),
-                        rs.getString("note"),
-                        rs.getInt("category_id"),
-                        rs.getString("category_name")
-                );
-
-                list.add(exp);
+                        rs.getString("note")
+                ));
             }
 
         } catch (SQLException e) {
@@ -81,9 +61,7 @@ public class ExpenseDAO {
         return list;
     }
 
-    // -------------------------------------------------------
-    // Delete Expense
-    // -------------------------------------------------------
+    // Delete expense
     public void deleteExpense(int id) {
         String sql = "DELETE FROM expenses WHERE id = ?";
 
@@ -92,7 +70,6 @@ public class ExpenseDAO {
 
             stmt.setInt(1, id);
             stmt.executeUpdate();
-
             System.out.println("✔ Expense deleted!");
 
         } catch (SQLException e) {
@@ -101,4 +78,3 @@ public class ExpenseDAO {
         }
     }
 }
-
