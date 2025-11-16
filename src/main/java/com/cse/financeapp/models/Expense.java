@@ -1,4 +1,4 @@
-package com.example.financeapp.models;
+package com.cse.financeapp.models;
 
 import java.time.LocalDate;
 
