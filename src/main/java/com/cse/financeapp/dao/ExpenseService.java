@@ -1,7 +1,7 @@
-package com.example.financeapp.dao;
+package com.cse.financeapp.dao;
 
-import com.example.financeapp.models.Expense;
-import com.example.financeapp.service.SupabaseClient;
+import com.cse.financeapp.models.Expense;
+import com.cse.financeapp.service.SupabaseClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
