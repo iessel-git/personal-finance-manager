@@ -9,8 +9,15 @@ import com.cse.financeapp.service.SupabaseClient;
 import java.util.List;
 import java.time.LocalDate;
 
+
 public class MainFinanceTest {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+
+        System.out.println("=== Adding Test Category ===");
+        DatabaseHelper.addCategory("Test Category", "Just a test");
+
+        System.out.println("=== Adding Test Expense ===");
+        DatabaseHelper.addExpense("Groceries", 150.75, 1);
 
         System.out.println("\n========== PERSONAL FINANCE SYSTEM TEST ==========\n");
 
