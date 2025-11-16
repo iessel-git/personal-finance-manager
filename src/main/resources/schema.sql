@@ -12,12 +12,12 @@ CREATE TABLE IF NOT EXISTS categories (
 -- ==============================
 CREATE TABLE IF NOT EXISTS expenses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    description TEXT NOT NULL,
+    category TEXT NOT NULL,
     amount REAL NOT NULL,
     date TEXT NOT NULL,
-    category_id INTEGER,
-    FOREIGN KEY (category_id) REFERENCES categories(id)
+    description TEXT
 );
+
 
 -- ==============================
 --  Budgets Table
