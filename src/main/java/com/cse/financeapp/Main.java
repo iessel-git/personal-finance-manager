@@ -10,18 +10,18 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
 
-        // No need to pass URL or KEY now
+        // Initialize Supabase client (hardcoded inside SupabaseClient)
         SupabaseClient client = new SupabaseClient();
         ExpenseService expenseService = new ExpenseService(client);
 
         System.out.println("\n=== Adding Test Expense ===");
 
         Expense testExpense = new Expense(
-            0,
-            "Test Lunch",
-            12.50,
-            LocalDate.now(),
-            1
+                0,
+                "Test Lunch",
+                12.50,
+                LocalDate.now(),
+                1
         );
 
         expenseService.addExpense(testExpense);
@@ -31,8 +31,8 @@ public class Main {
 
         for (Expense e : expenses) {
             System.out.println(
-                e.getId() + " | " + e.getDescription() + " | " +
-                e.getAmount() + " | " + e.getDate() + " | Category: " + e.getCategoryId()
+                    e.getId() + " | " + e.getDescription() + " | " +
+                    e.getAmount() + " | " + e.getDate() + " | Category: " + e.getCategoryId()
             );
         }
 
