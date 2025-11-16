@@ -17,6 +17,9 @@ public class ExpenseService {
         this.client = client;
     }
 
+    /**
+     * Add a new expense to Supabase
+     */
     public void addExpense(Expense expense) {
         try {
             JSONObject json = new JSONObject();
@@ -34,6 +37,9 @@ public class ExpenseService {
         }
     }
 
+    /**
+     * Get all expenses from Supabase
+     */
     public List<Expense> getExpenses() {
         List<Expense> list = new ArrayList<>();
 
@@ -55,13 +61,16 @@ public class ExpenseService {
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Failed to fetch expenses");
+            System.out.println("❌ Failed to fetch expenses from Supabase");
             e.printStackTrace();
         }
 
         return list;
     }
 
+    /**
+     * Delete an expense by ID
+     */
     public void deleteExpense(int id) {
         try {
             client.delete("/rest/v1/expenses?id=eq." + id);
@@ -73,4 +82,3 @@ public class ExpenseService {
         }
     }
 }
-
