@@ -1,6 +1,5 @@
 package com.cse.financeapp.service;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -8,58 +7,73 @@ import java.net.http.HttpResponse;
 
 public class SupabaseClient {
 
-    private final String supabaseUrl;
-    private final String apiKey;
+    private static final String SUPABASE_URL = "https://ggjvorvnrrbqixszpemk.supabase.co";
+    private static final String SUPABASE_API_KEY =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnanZvcnZucnJicWl4c3pwZW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNDAzNzcsImV4cCI6MjA3ODgxNjM3N30.jPcgtyajOl0qM35XCPWAygmWeH2ecHMTMxBOCF5IVtU";
+
     private final HttpClient client;
 
-    // Base URL should look like: https://xyz.supabase.co/rest/v1/
-    public SupabaseClient(String supabaseUrl, String apiKey) {
-        if (!supabaseUrl.endsWith("/")) {
-            supabaseUrl += "/";
-        }
-        this.supabaseUrl = supabaseUrl + "rest/v1/";
-        this.apiKey = apiKey;
+    public SupabaseClient() {
         this.client = HttpClient.newHttpClient();
     }
 
-    // GET with filtering (example: expenses?category=eq.Food)
-    public String get(String endpoint) throws IOException, InterruptedException {
+    // ---------------------------------------------------------
+    // Generic GET (Select)
+    // ---------------------------------------------------------
+    public String select(String table) throws Exception {
+        String url = SUPABASE_URL + "/rest/v1/" + table + "?select=*";
+
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(supabaseUrl + endpoint))
-                .header("apikey", apiKey)
-                .header("Authorization", "Bearer " + apiKey)
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_API_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_API_KEY)
                 .header("Content-Type", "application/json")
                 .GET()
                 .build();
 
-        return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+        HttpResponse<String> response =
+                client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        return response.body();
     }
 
-    // POST JSON -> inserts row
-    public String post(String endpoint, String json) throws IOException, InterruptedException {
+    // ---------------------------------------------------------
+    // Generic INSERT
+    // ---------------------------------------------------------
+    public String insert(String table, String jsonBody) throws Exception {
+        String url = SUPABASE_URL + "/rest/v1/" + table;
+
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(supabaseUrl + endpoint))
-                .header("apikey", apiKey)
-                .header("Authorization", "Bearer " + apiKey)
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_API_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_API_KEY)
                 .header("Content-Type", "application/json")
-                .header("Prefer", "return=representation")  // gets inserted value back
-                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                 .build();
 
-        return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+        HttpResponse<String> response =
+                client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        return response.body();
     }
 
-    // DELETE with filters (example: expenses?id=eq.3)
-    public String delete(String endpoint) throws IOException, InterruptedException {
+    // ---------------------------------------------------------
+    // Generic DELETE by ID
+    // ---------------------------------------------------------
+    public String delete(String table, int id) throws Exception {
+        String url = SUPABASE_URL + "/rest/v1/" + table + "?id=eq." + id;
+
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(supabaseUrl + endpoint))
-                .header("apikey", apiKey)
-                .header("Authorization", "Bearer " + apiKey)
+                .uri(URI.create(url))
+                .header("apikey", SUPABASE_API_KEY)
+                .header("Authorization", "Bearer " + SUPABASE_API_KEY)
                 .header("Content-Type", "application/json")
-                .header("Prefer", "return=representation")
                 .DELETE()
                 .build();
 
-        return client.send(request, HttpResponse.BodyHandlers.ofString()).body();
+        HttpResponse<String> response =
+                client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        return response.body();
     }
 }
