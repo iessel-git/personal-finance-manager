@@ -11,8 +11,8 @@ public class Main {
     public static void main(String[] args) {
 
         SupabaseClient client = new SupabaseClient(
-                "https://YOUR_PROJECT.supabase.co",
-                "YOUR_ANON_KEY"
+                "https://finance_manager.supabase.co",
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnanZvcnZucnJicWl4c3pwZW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNDAzNzcsImV4cCI6MjA3ODgxNjM3N30.jPcgtyajOl0qM35XCPWAygmWeH2ecHMTMxBOCF5IVtU"
         );
 
         ExpenseService expenseService = new ExpenseService(client);
