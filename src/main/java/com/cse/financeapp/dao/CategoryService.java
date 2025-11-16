@@ -1,56 +1,42 @@
 package com.cse.financeapp.dao;
 
 import com.cse.financeapp.models.Category;
+import com.cse.financeapp.repository.CategoryRepository;
 import com.cse.financeapp.service.SupabaseClient;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class CategoryService {
-
-    private final SupabaseClient client;
+    private final CategoryRepository repo;
 
     public CategoryService(SupabaseClient client) {
-        this.client = client;
+        this.repo = new CategoryRepository(client);
     }
 
     public void addCategory(Category category) {
         try {
-            JSONObject json = new JSONObject();
-            json.put("name", category.getName());
-
-            client.insert("categories", json.toString());
+            repo.addCategory(category);
             System.out.println("✔ Category added!");
-
         } catch (Exception e) {
-            System.out.println("❌ Failed to add category");
             e.printStackTrace();
         }
     }
 
     public List<Category> getCategories() {
-        List<Category> list = new ArrayList<>();
-
         try {
-            String response = client.select("categories");
-            JSONArray arr = new JSONArray(response);
-
-            for (int i = 0; i < arr.length(); i++) {
-                JSONObject o = arr.getJSONObject(i);
-
-                list.add(new Category(
-                        o.getInt("id"),
-                        o.getString("name")
-                ));
-            }
-
+            return repo.getAllCategories();
         } catch (Exception e) {
-            System.out.println("❌ Failed to fetch categories");
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public void deleteCategory(int id) {
+        try {
+            repo.deleteCategory(id);
+            System.out.println("✔ Category deleted!");
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
-        return list;
     }
 }
