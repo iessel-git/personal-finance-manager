@@ -17,9 +17,6 @@ public class ExpenseService {
         this.client = client;
     }
 
-    /**
-     * Add a new expense to Supabase
-     */
     public void addExpense(Expense expense) {
         try {
             JSONObject json = new JSONObject();
@@ -28,8 +25,8 @@ public class ExpenseService {
             json.put("date", expense.getDate().toString());
             json.put("category_id", expense.getCategoryId());
 
-            client.post("/rest/v1/expenses", json.toString());
-            System.out.println("✔ Expense added to Supabase!");
+            client.insert("expenses", json.toString());
+            System.out.println("✔ Expense added!");
 
         } catch (Exception e) {
             System.out.println("❌ Failed to add expense");
@@ -37,15 +34,11 @@ public class ExpenseService {
         }
     }
 
-    /**
-     * Get all expenses from Supabase
-     */
     public List<Expense> getExpenses() {
         List<Expense> list = new ArrayList<>();
 
         try {
-            String response = client.get("/rest/v1/expenses?select=*");
-
+            String response = client.select("expenses");
             JSONArray arr = new JSONArray(response);
 
             for (int i = 0; i < arr.length(); i++) {
@@ -61,20 +54,17 @@ public class ExpenseService {
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Failed to fetch expenses from Supabase");
+            System.out.println("❌ Failed to fetch expenses");
             e.printStackTrace();
         }
 
         return list;
     }
 
-    /**
-     * Delete an expense by ID
-     */
     public void deleteExpense(int id) {
         try {
-            client.delete("/rest/v1/expenses?id=eq." + id);
-            System.out.println("✔ Expense deleted from Supabase!");
+            client.delete("expenses", id);
+            System.out.println("✔ Expense deleted!");
 
         } catch (Exception e) {
             System.out.println("❌ Failed to delete expense");
