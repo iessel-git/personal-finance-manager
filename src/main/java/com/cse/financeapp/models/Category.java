@@ -1,4 +1,4 @@
-package com.example.financeapp.model;
+package com.cse.financeapp.model;
 
 public class Category {
     private int id;
