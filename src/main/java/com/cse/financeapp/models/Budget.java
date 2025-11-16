@@ -1,4 +1,4 @@
-package com.example.financeapp.models;
+package com.cse.financeapp.models;
 
 public class Budget {
 
