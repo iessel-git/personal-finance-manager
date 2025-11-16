@@ -16,12 +16,15 @@ public class CategoryService {
         this.client = client;
     }
 
+    // -------------------------------------------------------------
+    // ADD CATEGORY
+    // -------------------------------------------------------------
     public void addCategory(Category category) {
         try {
             JSONObject json = new JSONObject();
             json.put("name", category.getName());
 
-            client.post("/rest/v1/categories", json.toString());
+            client.post("categories", json.toString());
             System.out.println("✔ Category added!");
 
         } catch (Exception e) {
@@ -30,11 +33,14 @@ public class CategoryService {
         }
     }
 
+    // -------------------------------------------------------------
+    // GET ALL CATEGORIES
+    // -------------------------------------------------------------
     public List<Category> getCategories() {
         List<Category> list = new ArrayList<>();
 
         try {
-            String response = client.get("/rest/v1/categories?select=*");
+            String response = client.get("categories?select=*");
             JSONArray arr = new JSONArray(response);
 
             for (int i = 0; i < arr.length(); i++) {
@@ -53,5 +59,18 @@ public class CategoryService {
 
         return list;
     }
-}
 
+    // -------------------------------------------------------------
+    // DELETE CATEGORY
+    // -------------------------------------------------------------
+    public void deleteCategory(int id) {
+        try {
+            client.delete("categories?id=eq." + id);
+            System.out.println("✔ Category deleted!");
+
+        } catch (Exception e) {
+            System.out.println("❌ Failed to delete category");
+            e.printStackTrace();
+        }
+    }
+}
