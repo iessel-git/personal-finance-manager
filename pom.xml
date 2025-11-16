@@ -20,22 +20,30 @@
 
         <postgresql.version>42.7.2</postgresql.version>
         <junit.version>5.10.0</junit.version>
+        <gson.version>2.10.1</gson.version>
     </properties>
 
     <dependencies>
 
-        <!-- ✅ PostgreSQL JDBC Driver for Supabase -->
+        <!-- PostgreSQL JDBC Driver for Supabase -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
         </dependency>
         
-         <dependency>
+        <!-- JSON parsing -->
+        <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-           <version>20231013</version>
-         </dependency>
+            <version>20231013</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.version}</version>
+        </dependency>
 
         <!-- JUnit Testing -->
         <dependency>
@@ -60,7 +68,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Test Runner -->
+            <!-- JUnit Test Runner -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -72,7 +80,17 @@
                 </configuration>
             </plugin>
 
-            <!-- 🚀 SHADE PLUGIN: Creates a runnable fat JAR -->
+            <!-- Exec Plugin: run any Main class -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <mainClass>com.cse.financeapp.MainCategoryTest</mainClass>
+                </configuration>
+            </plugin>
+
+            <!-- Shade Plugin: build runnable fat JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -86,8 +104,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <!-- ✅ UPDATED mainClass -->
-                                    <mainClass>com.cse.financeapp.Main</mainClass>
+                                    <mainClass>com.cse.financeapp.MainCategoryTest</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
