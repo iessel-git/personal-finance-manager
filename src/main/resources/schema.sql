@@ -15,8 +15,10 @@ CREATE TABLE IF NOT EXISTS expenses (
     category TEXT NOT NULL,
     amount REAL NOT NULL,
     date TEXT NOT NULL,
-    description TEXT
+    description TEXT,
+    note TEXT
 );
+
 
 
 -- ==============================
