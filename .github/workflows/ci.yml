@@ -27,8 +27,10 @@ jobs:
       - name: Run Tests
         run: mvn test
 
-      # Optional: Run the app at the end of CI (can be commented out)
       - name: Run Finance App (Test Run)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: |
           java \
             -cp target/financeapp-1.0-SNAPSHOT.jar \
