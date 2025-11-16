@@ -9,42 +9,42 @@ import com.cse.financeapp.service.SupabaseClient;
 import java.util.List;
 import java.time.LocalDate;
 
-
 public class MainFinanceTest {
+
     public static void main(String[] args) throws Exception {
-
-        System.out.println("=== Adding Test Category ===");
-        DatabaseHelper.addCategory("Test Category", "Just a test");
-
-        System.out.println("=== Adding Test Expense ===");
-        DatabaseHelper.addExpense("Groceries", 150.75, 1);
 
         System.out.println("\n========== PERSONAL FINANCE SYSTEM TEST ==========\n");
 
-        // Initialize client
+        // Initialize Supabase client (with your hardcoded credentials)
         SupabaseClient client = new SupabaseClient();
-
         CategoryRepository categoryRepo = new CategoryRepository(client);
         ExpenseService expenseService = new ExpenseService(client);
 
         // -----------------------------------------------------
-        // CATEGORY TEST
+        // 1️⃣ CATEGORY TEST
         // -----------------------------------------------------
         System.out.println("=== Adding Test Category ===");
-        Category testCategory = new Category(0, "CombinedTestCat", "For combined test");
+        Category testCategory = new Category(
+                0,
+                "CombinedTestCat",
+                "For combined integration test"
+        );
+
         categoryRepo.addCategory(testCategory);
         System.out.println("✔ Category added!");
 
+        // Fetch categories
         System.out.println("\n=== Fetching Categories ===");
         List<Category> categories = categoryRepo.getAllCategories();
         for (Category c : categories) {
             System.out.println(c.getId() + " | " + c.getName() + " | " + c.getDescription());
         }
 
-        int lastCategoryId = categories.get(categories.size() - 1).getId();
+        int insertedCategoryId = categories.get(categories.size() - 1).getId();
+
 
         // -----------------------------------------------------
-        // EXPENSE TEST
+        // 2️⃣ EXPENSE TEST
         // -----------------------------------------------------
         System.out.println("\n=== Adding Test Expense ===");
         Expense testExpense = new Expense(
@@ -52,12 +52,13 @@ public class MainFinanceTest {
                 "Test Expense Linked",
                 20.75,
                 LocalDate.now(),
-                lastCategoryId  // use the category we just created
+                insertedCategoryId   // link to created category
         );
 
         expenseService.addExpense(testExpense);
         System.out.println("✔ Expense added!");
 
+        // Fetch expenses
         System.out.println("\n=== Fetching Expenses ===");
         List<Expense> expenses = expenseService.getExpenses();
         for (Expense e : expenses) {
@@ -68,21 +69,25 @@ public class MainFinanceTest {
             );
         }
 
-        int lastExpenseId = expenses.get(expenses.size() - 1).getId();
+        int insertedExpenseId = expenses.get(expenses.size() - 1).getId();
+
 
         // -----------------------------------------------------
-        // DELETE TEST
+        // 3️⃣ CLEANUP TEST DATA
         // -----------------------------------------------------
-        System.out.println("\n=== Deleting Created Records ===");
+        System.out.println("\n=== CLEANUP: Deleting Test Records ===");
 
-        System.out.println("Deleting Category ID: " + lastCategoryId);
-        categoryRepo.deleteCategory(lastCategoryId);
-        System.out.println("✔ Category deleted!");
-
-        System.out.println("Deleting Expense ID: " + lastExpenseId);
-        expenseService.deleteExpense(lastExpenseId);
+        // Delete expense first → avoids FK constraint failures
+        System.out.println("Deleting Expense ID: " + insertedExpenseId);
+        expenseService.deleteExpense(insertedExpenseId);
         System.out.println("✔ Expense deleted!");
 
+        System.out.println("Deleting Category ID: " + insertedCategoryId);
+        categoryRepo.deleteCategory(insertedCategoryId);
+        System.out.println("✔ Category deleted!");
+
+
+        // -----------------------------------------------------
         System.out.println("\n========== TEST COMPLETE ==========\n");
     }
 }
