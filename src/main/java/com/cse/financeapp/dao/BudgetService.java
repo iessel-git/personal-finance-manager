@@ -16,17 +16,14 @@ public class BudgetService {
         this.client = client;
     }
 
-    // -------------------------------------------------------------
-    // ADD BUDGET
-    // -------------------------------------------------------------
     public void addBudget(Budget budget) {
         try {
             JSONObject json = new JSONObject();
             json.put("category_id", budget.getCategoryId());
             json.put("limit_amount", budget.getLimitAmount());
 
-            client.post("budget", json.toString());
-            System.out.println("✔ Budget added to Supabase!");
+            client.insert("budget", json.toString());
+            System.out.println("✔ Budget added!");
 
         } catch (Exception e) {
             System.out.println("❌ Failed to add budget");
@@ -34,14 +31,11 @@ public class BudgetService {
         }
     }
 
-    // -------------------------------------------------------------
-    // GET ALL BUDGETS
-    // -------------------------------------------------------------
     public List<Budget> getBudgets() {
         List<Budget> list = new ArrayList<>();
 
         try {
-            String response = client.get("budget?select=*");
+            String response = client.select("budget");
             JSONArray arr = new JSONArray(response);
 
             for (int i = 0; i < arr.length(); i++) {
@@ -60,19 +54,5 @@ public class BudgetService {
         }
 
         return list;
-    }
-
-    // -------------------------------------------------------------
-    // DELETE BUDGET
-    // -------------------------------------------------------------
-    public void deleteBudget(int id) {
-        try {
-            client.delete("budget?id=eq." + id);
-            System.out.println("✔ Budget deleted!");
-
-        } catch (Exception e) {
-            System.out.println("❌ Failed to delete budget");
-            e.printStackTrace();
-        }
     }
 }
