@@ -1,5 +1,6 @@
 package com.cse.financeapp.dao;
 
+import com.cse.financeapp.models.Expense;
 import com.cse.financeapp.service.SupabaseClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -9,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ExpenseService — uses SupabaseClient (Version B).
+ * ExpenseService - CRUD operations against Supabase expenses table
  */
 public class ExpenseService {
 
@@ -19,12 +20,13 @@ public class ExpenseService {
         this.client = client;
     }
 
-    public int createExpense(String description, double amount, LocalDate date, int categoryId) throws Exception {
+    public int addExpense(Expense expense) throws Exception {
         JSONObject json = new JSONObject();
-        json.put("description", description);
-        json.put("amount", amount);
-        json.put("date", date.toString());
-        json.put("category_id", categoryId);
+        json.put("description", expense.getDescription());
+        json.put("amount", expense.getAmount());
+        json.put("date", expense.getDate().toString());
+        json.put("category_id", expense.getCategoryId());
+        if (expense.getNote() != null) json.put("note", expense.getNote());
 
         String resp = client.insert("expenses", json.toString());
         if (isArray(resp)) {
@@ -32,36 +34,49 @@ public class ExpenseService {
             if (arr.isEmpty()) throw new RuntimeException("Insert returned empty array");
             return arr.getJSONObject(0).getInt("id");
         } else {
-            JSONObject o = new JSONObject(resp);
-            throw new RuntimeException("Supabase error on createExpense: " + o.toString());
+            throw new RuntimeException("Supabase error on addExpense: " + resp);
         }
     }
 
-    public List<JSONObject> listRawExpenses() throws Exception {
+    public List<Expense> getExpenses() throws Exception {
         String resp = client.select("expenses");
+        List<Expense> out = new ArrayList<>();
         if (isArray(resp)) {
             JSONArray arr = new JSONArray(resp);
-            List<JSONObject> out = new ArrayList<>();
-            for (int i = 0; i < arr.length(); i++) out.add(arr.getJSONObject(i));
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.getJSONObject(i);
+                out.add(new Expense(
+                        o.getInt("id"),
+                        o.optString("description", null),
+                        o.optDouble("amount", 0.0),
+                        LocalDate.parse(o.getString("date")),
+                        o.has("category_id") ? o.optInt("category_id") : -1,
+                        o.optString("note", null)
+                ));
+            }
             return out;
         } else {
-            JSONObject o = new JSONObject(resp);
-            throw new RuntimeException("Supabase error on select expenses: " + o.toString());
+            throw new RuntimeException("Supabase error on getExpenses: " + resp);
         }
     }
 
-    public boolean updateExpenseAmount(int id, double newAmount) throws Exception {
+    // safe partial update (only non-null fields)
+    public boolean updateExpense(int id, String description, Double amount, LocalDate date, Integer categoryId, String note) throws Exception {
         JSONObject json = new JSONObject();
-        json.put("id", id);
-        json.put("amount", newAmount);
+        if (description != null) json.put("description", description);
+        if (amount != null) json.put("amount", amount);
+        if (date != null) json.put("date", date.toString());
+        if (categoryId != null) json.put("category_id", categoryId);
+        if (note != null) json.put("note", note);
 
-        String resp = client.upsert("expenses", json.toString());
+        if (json.isEmpty()) throw new IllegalArgumentException("No fields to update for expense");
+
+        String resp = client.patch("expenses", id, json.toString());
         if (isArray(resp)) {
             JSONArray arr = new JSONArray(resp);
             return !arr.isEmpty();
         } else {
-            JSONObject o = new JSONObject(resp);
-            throw new RuntimeException("Supabase error on updateExpense: " + o.toString());
+            throw new RuntimeException("Supabase error on updateExpense: " + resp);
         }
     }
 
@@ -71,14 +86,12 @@ public class ExpenseService {
             JSONArray arr = new JSONArray(resp);
             return !arr.isEmpty();
         } else {
-            JSONObject o = new JSONObject(resp);
-            throw new RuntimeException("Supabase error on deleteExpense: " + o.toString());
+            throw new RuntimeException("Supabase error on deleteExpense: " + resp);
         }
     }
 
     private boolean isArray(String raw) {
         if (raw == null) return false;
-        String t = raw.trim();
-        return t.startsWith("[");
+        return raw.trim().startsWith("[");
     }
 }
