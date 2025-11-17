@@ -1,9 +1,11 @@
 package com.cse.financeapp.models;
 
 public class Category {
-    private final int id;
-    private final String name;
-    private final String description;
+    private int id;
+    private String name;
+    private String description;
+
+    public Category() {}
 
     public Category(int id, String name, String description) {
         this.id = id;
@@ -11,9 +13,17 @@ public class Category {
         this.description = description;
     }
 
+    public Category(String name, String description) {
+        this(-1, name, description);
+    }
+
     public int getId() { return id; }
     public String getName() { return name; }
     public String getDescription() { return description; }
+
+    public void setId(int id) { this.id = id; }
+    public void setName(String name) { this.name = name; }
+    public void setDescription(String description) { this.description = description; }
 
     @Override
     public String toString() {
