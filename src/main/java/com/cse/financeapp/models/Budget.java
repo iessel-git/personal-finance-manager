@@ -1,25 +1,20 @@
 package com.cse.financeapp.models;
 
 public class Budget {
+    private final int id;
+    private final int categoryId;
+    private final double amount;
+    private final String month; // flexible for now
 
-    private int id;
-    private int categoryId;
-    private double limitAmount;
-
-    public Budget(int id, int categoryId, double limitAmount) {
+    public Budget(int id, int categoryId, double amount, String month) {
         this.id = id;
         this.categoryId = categoryId;
-        this.limitAmount = limitAmount;
-    }
-
-    public Budget(int categoryId, double limitAmount) {
-        this(-1, categoryId, limitAmount);
+        this.amount = amount;
+        this.month = month;
     }
 
     public int getId() { return id; }
-
     public int getCategoryId() { return categoryId; }
-
-    public double getLimitAmount() { return limitAmount; }
+    public double getAmount() { return amount; }
+    public String getMonth() { return month; }
 }
-
