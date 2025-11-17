@@ -9,86 +9,54 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * CategoryService - safe CRUD using SupabaseClient
+ * Simple CategoryService (Option A).
  */
 public class CategoryService {
-
     private final SupabaseClient client;
 
     public CategoryService(SupabaseClient client) {
         this.client = client;
     }
 
-    // create category, returns created id
+    // create, returns id
     public int createCategory(String name, String description) throws Exception {
-        JSONObject json = new JSONObject();
-        json.put("name", name);
-        json.put("description", description);
-
-        String resp = client.insert("categories", json.toString());
-        // If Supabase returns an array with created rows, parse id
-        if (isArray(resp)) {
-            JSONArray arr = new JSONArray(resp);
-            if (arr.isEmpty()) throw new RuntimeException("Insert returned empty array");
-            return arr.getJSONObject(0).getInt("id");
-        } else {
-            // error object returned
-            throw new RuntimeException("Supabase error on createCategory: " + resp);
-        }
+        JSONObject j = new JSONObject();
+        j.put("name", name);
+        j.put("description", description);
+        String resp = client.insert("categories", j.toString());
+        JSONArray arr = new JSONArray(resp);
+        if (arr.isEmpty()) throw new RuntimeException("Category insert returned empty");
+        return arr.getJSONObject(0).getInt("id");
     }
 
-    // list categories mapped to models
     public List<Category> listCategories() throws Exception {
         String resp = client.select("categories");
+        JSONArray arr = new JSONArray(resp);
         List<Category> out = new ArrayList<>();
-        if (isArray(resp)) {
-            JSONArray arr = new JSONArray(resp);
-            for (int i = 0; i < arr.length(); i++) {
-                JSONObject o = arr.getJSONObject(i);
-                out.add(new Category(
-                        o.getInt("id"),
-                        o.optString("name", null),
-                        o.optString("description", null)
-                ));
-            }
-            return out;
-        } else {
-            throw new RuntimeException("Supabase error on listCategories: " + resp);
+        for (int i = 0; i < arr.length(); i++) {
+            JSONObject o = arr.getJSONObject(i);
+            out.add(new Category(
+                    o.optInt("id", -1),
+                    o.optString("name", null),
+                    o.optString("description", null)
+            ));
         }
+        return out;
     }
 
-    // safe update: only non-null fields are sent via PATCH
-    public boolean updateCategory(int id, String newName, String newDescription) throws Exception {
-        JSONObject json = new JSONObject();
-        if (newName != null) json.put("name", newName);
-        if (newDescription != null) json.put("description", newDescription);
-
-        if (json.isEmpty()) throw new IllegalArgumentException("No fields provided to updateCategory");
-
-        String resp = client.patch("categories", id, json.toString());
-        if (isArray(resp)) {
-            JSONArray arr = new JSONArray(resp);
-            return !arr.isEmpty();
-        } else {
-            throw new RuntimeException("Supabase error on updateCategory: " + resp);
-        }
+    public boolean updateCategory(int id, String name, String description) throws Exception {
+        JSONObject j = new JSONObject();
+        if (name != null) j.put("name", name);
+        if (description != null) j.put("description", description);
+        String resp = client.update("categories", id, j.toString());
+        JSONArray arr = new JSONArray(resp);
+        return !arr.isEmpty();
     }
 
-    // delete by id
     public boolean deleteCategory(int id) throws Exception {
         String resp = client.delete("categories", id);
-        if (isArray(resp)) {
-            JSONArray arr = new JSONArray(resp);
-            return !arr.isEmpty();
-        } else {
-            // Could be empty array or error object — treat object as error
-            throw new RuntimeException("Supabase error on deleteCategory: " + resp);
-        }
-    }
-
-    private boolean isArray(String raw) {
-        if (raw == null) return false;
-        String t = raw.trim();
-        return t.startsWith("[");
+        JSONArray arr = new JSONArray(resp);
+        // Supabase returns [] on deletion; treat success if response is empty array or not an error
+        return true;
     }
 }
