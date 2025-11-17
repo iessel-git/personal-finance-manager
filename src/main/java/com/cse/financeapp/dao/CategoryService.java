@@ -8,9 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * CategoryService — uses SupabaseClient (Version B).
- * It inspects raw responses: if response starts with '[' it's an array (success),
- * otherwise it treats response as error object and throws with details.
+ * CategoryService — Version B using SupabaseClient.
+ * This version uses PATCH for updates so missing fields are not overwritten as null.
  */
 public class CategoryService {
 
@@ -32,9 +31,8 @@ public class CategoryService {
             if (arr.isEmpty()) throw new RuntimeException("Insert returned empty array");
             return arr.getJSONObject(0).getInt("id");
         } else {
-            // error object
             JSONObject o = new JSONObject(resp);
-            throw new RuntimeException("Supabase error on createCategory: " + o.toString());
+            throw new RuntimeException("Supabase error on createCategory: " + o);
         }
     }
 
@@ -44,31 +42,42 @@ public class CategoryService {
         if (isArray(resp)) {
             JSONArray arr = new JSONArray(resp);
             List<JSONObject> out = new ArrayList<>();
-            for (int i = 0; i < arr.length(); i++) out.add(arr.getJSONObject(i));
+            for (int i = 0; i < arr.length(); i++) {
+                out.add(arr.getJSONObject(i));
+            }
             return out;
         } else {
             JSONObject o = new JSONObject(resp);
-            throw new RuntimeException("Supabase error on select categories: " + o.toString());
+            throw new RuntimeException("Supabase error on select categories: " + o);
         }
     }
 
-    // Update category (returns true if updated)
-    public boolean updateCategory(int id, String newDescription) throws Exception {
+    /**
+     * Update category safely using PATCH.
+     * Only non-null fields are sent to Supabase.
+     */
+    public boolean updateCategory(int id, String newName, String newDescription) throws Exception {
         JSONObject json = new JSONObject();
-        json.put("id", id);
-        json.put("description", newDescription);
 
-        String resp = client.upsert("categories", json.toString());
+        if (newName != null) json.put("name", newName);
+        if (newDescription != null) json.put("description", newDescription);
+
+        if (json.isEmpty()) {
+            throw new RuntimeException("No fields provided to updateCategory");
+        }
+
+        String resp = client.patch("categories", id, json.toString());
+
         if (isArray(resp)) {
             JSONArray arr = new JSONArray(resp);
             return !arr.isEmpty();
         } else {
             JSONObject o = new JSONObject(resp);
-            throw new RuntimeException("Supabase error on updateCategory: " + o.toString());
+            throw new RuntimeException("Supabase error on updateCategory: " + o);
         }
     }
 
-    // Delete by id
+    // Delete by ID
     public boolean deleteCategory(int id) throws Exception {
         String resp = client.delete("categories", id);
         if (isArray(resp)) {
@@ -76,9 +85,7 @@ public class CategoryService {
             return !arr.isEmpty();
         } else {
             JSONObject o = new JSONObject(resp);
-            // If file is empty array due to not found, server may return []
-            // But if object, it's an error
-            throw new RuntimeException("Supabase error on deleteCategory: " + o.toString());
+            throw new RuntimeException("Supabase error on deleteCategory: " + o);
         }
     }
 
