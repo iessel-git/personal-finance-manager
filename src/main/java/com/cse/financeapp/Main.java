@@ -1,45 +1,46 @@
 package com.cse.financeapp;
 
+import com.cse.financeapp.dao.CategoryService;
 import com.cse.financeapp.dao.ExpenseService;
-import com.cse.financeapp.models.Expense;
 import com.cse.financeapp.service.SupabaseClient;
+import org.json.JSONObject;
 
 import java.time.LocalDate;
 import java.util.List;
 
 public class Main {
+
     public static void main(String[] args) {
+        try {
+            SupabaseClient client = new SupabaseClient();
+            CategoryService categoryService = new CategoryService(client);
+            ExpenseService expenseService = new ExpenseService(client);
 
-        // Initialize Supabase client (hardcoded inside SupabaseClient)
-        SupabaseClient client = new SupabaseClient();
-        ExpenseService expenseService = new ExpenseService(client);
+            System.out.println("=== DEMO ===");
 
-        System.out.println("\n=== Adding Test Expense ===");
+            // CREATE CATEGORY
+            int catId = categoryService.createCategory("DemoCategory", "For Main.java run");
+            System.out.println("Created category id=" + catId);
 
-        Expense testExpense = new Expense(
-                0,
-                "Test Lunch",
-                12.50,
-                LocalDate.now(),
-                1
-        );
-
-        expenseService.addExpense(testExpense);
-
-        System.out.println("\n=== Fetching All Expenses ===");
-        List<Expense> expenses = expenseService.getExpenses();
-
-        for (Expense e : expenses) {
-            System.out.println(
-                    e.getId() + " | " + e.getDescription() + " | " +
-                    e.getAmount() + " | " + e.getDate() + " | Category: " + e.getCategoryId()
+            // CREATE EXPENSE
+            int expId = expenseService.createExpense(
+                    "DemoExpense",
+                    40.25,
+                    LocalDate.now(),
+                    catId
             );
-        }
+            System.out.println("Created expense id=" + expId);
 
-        if (!expenses.isEmpty()) {
-            int deleteId = expenses.get(expenses.size() - 1).getId();
-            System.out.println("\n=== Deleting Expense with ID " + deleteId + " ===");
-            expenseService.deleteExpense(deleteId);
+            // LIST ALL EXPENSES
+            List<JSONObject> expenses = expenseService.listRawExpenses();
+            System.out.println("Total expenses: " + expenses.size());
+
+            // CLEAN-UP
+            expenseService.deleteExpense(expId);
+            categoryService.deleteCategory(catId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
