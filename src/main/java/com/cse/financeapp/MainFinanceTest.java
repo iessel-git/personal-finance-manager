@@ -39,7 +39,8 @@ public class MainFinanceTest {
             List<JSONObject> cats = categoryService.listRawCategories();
             System.out.println("Total categories: " + cats.size());
 
-            boolean updatedCat = categoryService.updateCategory(catId, "Updated Desc");
+            boolean updatedCat = categoryService.updateCategory(catId, "Updated Name", "Updated Desc");
+
             System.out.println("Category update result=" + updatedCat);
 
             // ---------- Expense CRUD ----------
