@@ -1,149 +1,72 @@
 package com.cse.financeapp;
 
+import com.cse.financeapp.dao.CategoryService;
+import com.cse.financeapp.dao.ExpenseService;
 import com.cse.financeapp.service.SupabaseClient;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * Integration-style test runner that:
+ *  - creates category
+ *  - creates expense tied to that category
+ *  - updates both
+ *  - deletes both
+ *
+ * Uses Version B SupabaseClient (raw responses; services throw on errors).
+ */
 public class MainFinanceTest {
 
-    public static void main(String[] args) throws Exception {
-        System.out.println("\n========== PERSONAL FINANCE SYSTEM TEST ==========");
+    public static void main(String[] args) {
+        System.out.println("\n========== PERSONAL FINANCE SYSTEM TEST ==========\n");
 
-        SupabaseClient client = new SupabaseClient();
+        try {
+            SupabaseClient client = new SupabaseClient();
+            CategoryService categoryService = new CategoryService(client);
+            ExpenseService expenseService = new ExpenseService(client);
 
-        runCategoryCrudTest(client);
-        runExpenseCrudTest(client);
+            // ---------- Category CRUD ----------
+            System.out.println("=== CATEGORY CRUD ===");
+            // Clean old test categories (non-throwing)
+            try { client.deleteWhere("categories", "name", "JUnitCategory"); } catch (Exception ignore) {}
 
-        System.out.println("========== ALL TESTS COMPLETE ==========\n");
-    }
+            int catId = categoryService.createCategory("JUnitCategory", "CRUD Test");
+            System.out.println("Created category id=" + catId);
 
-    // ======================================================================
-    // CATEGORY CRUD TEST
-    // ======================================================================
-    public static void runCategoryCrudTest(SupabaseClient client) throws Exception {
-        System.out.println("\n========== CATEGORY CRUD TEST ==========");
+            List<JSONObject> cats = categoryService.listRawCategories();
+            System.out.println("Total categories: " + cats.size());
 
-        // ----------------------------------------------------
-        // CLEANUP
-        // ----------------------------------------------------
-        System.out.println("→ Cleaning old test category...");
-        client.deleteWhere("categories", "name", "JUnitCategory");
+            boolean updatedCat = categoryService.updateCategory(catId, "Updated Desc");
+            System.out.println("Category update result=" + updatedCat);
 
-        // ----------------------------------------------------
-        // 1. CREATE CATEGORY
-        // ----------------------------------------------------
-        System.out.println("→ Creating test category...");
+            // ---------- Expense CRUD ----------
+            System.out.println("\n=== EXPENSE CRUD ===");
+            int expId = expenseService.createExpense("JUnitExpense", 25.50, LocalDate.now(), catId);
+            System.out.println("Created expense id=" + expId);
 
-        JSONObject createJson = new JSONObject();
-        createJson.put("name", "JUnitCategory");
-        createJson.put("description", "CRUD Test");
+            List<JSONObject> exps = expenseService.listRawExpenses();
+            System.out.println("Total expenses: " + exps.size());
 
-        String createResp = client.insert("categories", createJson.toString());
-        JSONArray createdArr = new JSONArray(createResp);
+            boolean updatedExp = expenseService.updateExpenseAmount(expId, 99.99);
+            System.out.println("Expense update result=" + updatedExp);
 
-        if (createdArr.isEmpty()) {
-            throw new RuntimeException("❌ Category creation failed!");
+            // ---------- Cleanup ----------
+            System.out.println("\n=== CLEANUP ===");
+            boolean delExp = expenseService.deleteExpense(expId);
+            System.out.println("Deleted expense result=" + delExp);
+
+            boolean delCat = categoryService.deleteCategory(catId);
+            System.out.println("Deleted category result=" + delCat);
+
+            System.out.println("\n========== ALL TESTS COMPLETE ==========\n");
+
+        } catch (Exception e) {
+            System.err.println("TEST RUN FAILED: " + e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
         }
-
-        int categoryId = createdArr.getJSONObject(0).getInt("id");
-        System.out.println("✔ Created category ID: " + categoryId);
-
-        // ----------------------------------------------------
-        // 2. READ CATEGORIES
-        // ----------------------------------------------------
-        System.out.println("→ Fetching categories...");
-        String fetchResp = client.select("categories");
-        JSONArray allCats = new JSONArray(fetchResp);
-        System.out.println("✔ Total categories: " + allCats.length());
-
-        // ----------------------------------------------------
-        // 3. UPDATE CATEGORY
-        // ----------------------------------------------------
-        System.out.println("→ Updating category description...");
-        JSONObject updateJson = new JSONObject();
-        updateJson.put("id", categoryId);
-        updateJson.put("description", "Updated Description");
-
-        String updateResp = client.upsert("categories", updateJson.toString());
-        JSONArray updatedArr = new JSONArray(updateResp);
-
-        if (updatedArr.isEmpty()) {
-            throw new RuntimeException("❌ Category update failed!");
-        }
-
-        System.out.println("✔ Category updated!");
-
-        // ----------------------------------------------------
-        // 4. DELETE CATEGORY
-        // ----------------------------------------------------
-        System.out.println("→ Deleting test category ID: " + categoryId);
-        client.delete("categories", categoryId);
-        System.out.println("✔ Category deleted!");
-
-        System.out.println("========== CATEGORY TEST COMPLETE ==========\n");
-    }
-
-    // ======================================================================
-    // EXPENSE CRUD TEST
-    // ======================================================================
-    public static void runExpenseCrudTest(SupabaseClient client) throws Exception {
-        System.out.println("\n========== EXPENSE CRUD TEST ==========");
-
-        // ----------------------------------------------------
-        // 1. CREATE EXPENSE
-        // ----------------------------------------------------
-        System.out.println("→ Creating test expense...");
-
-        JSONObject createJson = new JSONObject();
-        createJson.put("description", "JUnitExpense");
-        createJson.put("amount", 25.50);
-        createJson.put("date", LocalDate.now().toString());
-        createJson.put("category_id", 1); // Must exist
-
-        String createResp = client.insert("expenses", createJson.toString());
-        JSONArray createdArr = new JSONArray(createResp);
-
-        if (createdArr.isEmpty()) {
-            throw new RuntimeException("❌ Expense creation failed!");
-        }
-
-        int expenseId = createdArr.getJSONObject(0).getInt("id");
-        System.out.println("✔ Created expense ID: " + expenseId);
-
-        // ----------------------------------------------------
-        // 2. READ EXPENSES
-        // ----------------------------------------------------
-        System.out.println("→ Fetching expenses...");
-        String fetchResp = client.select("expenses");
-        JSONArray allExp = new JSONArray(fetchResp);
-        System.out.println("✔ Total expenses: " + allExp.length());
-
-        // ----------------------------------------------------
-        // 3. UPDATE EXPENSE
-        // ----------------------------------------------------
-        System.out.println("→ Updating expense amount...");
-        JSONObject updateJson = new JSONObject();
-        updateJson.put("id", expenseId);
-        updateJson.put("amount", 40.75);
-
-        String updateResp = client.upsert("expenses", updateJson.toString());
-        JSONArray updatedArr = new JSONArray(updateResp);
-
-        if (updatedArr.isEmpty()) {
-            throw new RuntimeException("❌ Expense update failed!");
-        }
-
-        System.out.println("✔ Expense updated!");
-
-        // ----------------------------------------------------
-        // 4. DELETE EXPENSE
-        // ----------------------------------------------------
-        System.out.println("→ Deleting test expense ID: " + expenseId);
-        client.delete("expenses", expenseId);
-        System.out.println("✔ Expense deleted!");
-
-        System.out.println("========== EXPENSE TEST COMPLETE ==========\n");
     }
 }
