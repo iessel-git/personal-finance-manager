@@ -32,7 +32,7 @@ public class BudgetService {
         }
     }
 
-    /** Fetch all budgets from Supabase */
+    /** Fetch all budgets */
     public List<Budget> getBudgets() {
         List<Budget> list = new ArrayList<>();
 
@@ -58,12 +58,13 @@ public class BudgetService {
         return list;
     }
 
-    /** Fetch a single budget by categoryId */
+    /** Fetch budget by category */
     public Budget getBudgetByCategoryId(int categoryId) {
         try {
-            String response = client.select("budget", "category_id=eq." + categoryId);
-            JSONArray arr = new JSONArray(response);
+            String table = "budget?category_id=eq." + categoryId + "&select=*";
+            String response = client.select(table);
 
+            JSONArray arr = new JSONArray(response);
             if (arr.length() == 0) return null;
 
             JSONObject o = arr.getJSONObject(0);
@@ -81,13 +82,15 @@ public class BudgetService {
         }
     }
 
-    /** Total spent for a category */
+    /** Total spent */
     public double getTotalSpent(int categoryId) {
         try {
-            String response = client.select("expense", "category_id=eq." + categoryId);
-            JSONArray arr = new JSONArray(response);
+            String table = "expense?category_id=eq." + categoryId + "&select=*";
+            String response = client.select(table);
 
+            JSONArray arr = new JSONArray(response);
             double sum = 0;
+
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.getJSONObject(i);
                 sum += o.getDouble("amount");
@@ -111,7 +114,7 @@ public class BudgetService {
         return spent > budget.getLimitAmount();
     }
 
-    /** Remaining budget */
+    /** Remaining amount */
     public double getRemainingAmount(int categoryId) {
         Budget budget = getBudgetByCategoryId(categoryId);
         if (budget == null) return 0;
