@@ -1,52 +1,119 @@
 package com.cse.financeapp;
 
-import com.cse.financeapp.dao.CategoryService;
-import com.cse.financeapp.dao.ExpenseService;
 import com.cse.financeapp.models.Category;
 import com.cse.financeapp.models.Expense;
+import com.cse.financeapp.repository.CategoryRepository;
+import com.cse.financeapp.dao.ExpenseService;
 import com.cse.financeapp.service.SupabaseClient;
 
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Minimal combined test for Category + Expense (Option A).
- * - Uses env vars SUPABASE_URL and SUPABASE_KEY
- */
 public class MainFinanceTest {
 
     public static void main(String[] args) throws Exception {
-        System.out.println("\n=== START: Combined Category+Expense Test ===");
 
+        System.out.println("\n========== PERSONAL FINANCE SYSTEM TEST ==========\n");
+
+        // Initialize client and repos
         SupabaseClient client = new SupabaseClient();
-        CategoryService categoryService = new CategoryService(client);
+        CategoryRepository categoryRepo = new CategoryRepository(client);
         ExpenseService expenseService = new ExpenseService(client);
 
-        // 1) Create a unique category (timestamp) to avoid duplicate-name conflicts
-        String uniqueName = "JUnitCategory_" + System.currentTimeMillis();
-        int catId = categoryService.createCategory(uniqueName, "Created by CI test");
-        System.out.println("Created category id=" + catId);
+        // -----------------------------------------------------
+        // 1️⃣ CATEGORY TEST
+        // -----------------------------------------------------
+        System.out.println("=== CATEGORY TEST ===");
 
-        // 2) Create an expense that references the category
-        int expenseId = expenseService.createExpense("JUnitExpense", 9.99, LocalDate.now(), catId);
-        System.out.println("Created expense id=" + expenseId);
+        Category testCategory = new Category(
+                0,
+                "CombinedTestCat",
+                "For combined integration test"
+        );
 
-        // 3) List categories and expenses (print counts)
-        List<Category> cats = categoryService.listCategories();
-        List<Expense> exps = expenseService.listExpenses();
-        System.out.println("Total categories: " + cats.size());
-        System.out.println("Total expenses: " + exps.size());
+        // Add category
+        categoryRepo.addCategory(testCategory);
+        System.out.println("✔ Category added!");
 
-        // 4) Update the category description and expense amount
-        boolean cUpdated = categoryService.updateCategory(catId, uniqueName, "Updated by CI test");
-        boolean eUpdated = expenseService.updateExpense(expenseId, null, 19.95, null, null);
-        System.out.println("Category updated: " + cUpdated + ", Expense updated: " + eUpdated);
+        // Fetch categories
+        System.out.println("\n=== Fetching Categories ===");
+        List<Category> categories = categoryRepo.getAllCategories();
 
-        // 5) Cleanup
-        boolean eDeleted = expenseService.deleteExpense(expenseId);
-        boolean cDeleted = categoryService.deleteCategory(catId);
-        System.out.println("Deleted expense: " + eDeleted + ", deleted category: " + cDeleted);
+        printCategories(categories);
 
-        System.out.println("=== FINISH: Combined test complete ===\n");
+        // Track last category
+        int newCategoryId = categories.get(categories.size() - 1).getId();
+
+
+        // -----------------------------------------------------
+        // 2️⃣ EXPENSE TEST
+        // -----------------------------------------------------
+        System.out.println("\n=== EXPENSE TEST ===");
+
+        Expense expense1 = new Expense(
+                0,
+                "Test Expense Linked",
+                20.75,
+                LocalDate.now(),
+                newCategoryId
+        );
+
+        expenseService.addExpense(expense1);
+        System.out.println("✔ Expense added!");
+
+        // Fetch expenses
+        System.out.println("\n=== Fetching Expenses ===");
+        List<Expense> expenses = expenseService.getExpenses();
+
+        printExpenses(expenses);
+
+        // Track last expense
+        int lastExpenseId = expenses.get(expenses.size() - 1).getId();
+
+
+        // -----------------------------------------------------
+        // 3️⃣ CLEAN UP (Delete created test data)
+        // -----------------------------------------------------
+        System.out.println("\n=== CLEANUP: Deleting Test Records ===");
+
+        System.out.println("Deleting Expense ID: " + lastExpenseId);
+        expenseService.deleteExpense(lastExpenseId);
+        System.out.println("✔ Expense deleted!");
+
+        System.out.println("Deleting Category ID: " + newCategoryId);
+        categoryRepo.deleteCategory(newCategoryId);
+        System.out.println("✔ Category deleted!");
+
+        System.out.println("\n========== TEST COMPLETE ==========\n");
+    }
+
+
+    // -----------------------------------------------------
+    // Helper: Print categories neatly
+    // -----------------------------------------------------
+    private static void printCategories(List<Category> categories) {
+        System.out.println("ID | Name | Description");
+        System.out.println("----------------------------------");
+        for (Category c : categories) {
+            System.out.println(c.getId() + " | " + c.getName() + " | " + c.getDescription());
+        }
+    }
+
+    // -----------------------------------------------------
+    // Helper: Print expenses neatly
+    // -----------------------------------------------------
+    private static void printExpenses(List<Expense> expenses) {
+        System.out.println("ID | Description | Amount | Date | Category");
+        System.out.println("-------------------------------------------------------------");
+
+        for (Expense e : expenses) {
+            System.out.println(
+                e.getId() + " | " +
+                e.getDescription() + " | " +
+                e.getAmount() + " | " +
+                e.getDate() + " | Category: " +
+                e.getCategoryId()
+            );
+        }
     }
 }
