@@ -16,9 +16,7 @@ public class BudgetService {
         this.client = client;
     }
 
-    // ------------------------------------------------------
-    // CREATE
-    // ------------------------------------------------------
+    /** Insert new budget */
     public void addBudget(Budget budget) {
         try {
             JSONObject json = new JSONObject();
@@ -26,7 +24,7 @@ public class BudgetService {
             json.put("limit_amount", budget.getLimitAmount());
 
             client.insert("budget", json.toString());
-            System.out.println("✔ Budget added");
+            System.out.println("✔ Budget added!");
 
         } catch (Exception e) {
             System.out.println("❌ Failed to add budget");
@@ -34,10 +32,7 @@ public class BudgetService {
         }
     }
 
-
-    // ------------------------------------------------------
-    // READ ALL
-    // ------------------------------------------------------
+    /** Fetch all budgets from Supabase */
     public List<Budget> getBudgets() {
         List<Budget> list = new ArrayList<>();
 
@@ -63,13 +58,10 @@ public class BudgetService {
         return list;
     }
 
-
-    // ------------------------------------------------------
-    // READ SINGLE (by category)
-    // ------------------------------------------------------
+    /** Fetch a single budget by categoryId */
     public Budget getBudgetByCategoryId(int categoryId) {
         try {
-            String response = client.select("budget?category_id=eq." + categoryId);
+            String response = client.select("budget", "category_id=eq." + categoryId);
             JSONArray arr = new JSONArray(response);
 
             if (arr.length() == 0) return null;
@@ -83,88 +75,48 @@ public class BudgetService {
             );
 
         } catch (Exception e) {
-            System.out.println("❌ Failed to get budget by category");
+            System.out.println("❌ Failed to fetch budget by category");
             e.printStackTrace();
             return null;
         }
     }
 
-
-    // ------------------------------------------------------
-    // UPDATE
-    // ------------------------------------------------------
-    public void updateBudget(int id, double newLimit) {
-        try {
-            JSONObject json = new JSONObject();
-            json.put("limit_amount", newLimit);
-
-            client.update("budget?id=eq." + id, json.toString());
-
-            System.out.println("✔ Budget updated");
-
-        } catch (Exception e) {
-            System.out.println("❌ Failed to update budget");
-            e.printStackTrace();
-        }
-    }
-
-
-    // ------------------------------------------------------
-    // DELETE
-    // ------------------------------------------------------
-    public void deleteBudget(int id) {
-        try {
-            client.delete("budget", "id=eq." + id);
-            System.out.println("✔ Budget deleted");
-
-        } catch (Exception e) {
-            System.out.println("❌ Failed to delete budget");
-            e.printStackTrace();
-        }
-    }
-
-
-    // ------------------------------------------------------
-    // TOTAL SPENDING FOR CATEGORY
-    // ------------------------------------------------------
+    /** Total spent for a category */
     public double getTotalSpent(int categoryId) {
         try {
-            String response = client.select("expense?category_id=eq." + categoryId);
+            String response = client.select("expense", "category_id=eq." + categoryId);
             JSONArray arr = new JSONArray(response);
 
             double sum = 0;
             for (int i = 0; i < arr.length(); i++) {
-                sum += arr.getJSONObject(i).getDouble("amount");
+                JSONObject o = arr.getJSONObject(i);
+                sum += o.getDouble("amount");
             }
 
             return sum;
 
         } catch (Exception e) {
-            System.out.println("❌ Failed calculating total spent");
+            System.out.println("❌ Failed to calculate total spent");
             e.printStackTrace();
             return 0;
         }
     }
 
-
-    // ------------------------------------------------------
-    // BUDGET REMAINING
-    // ------------------------------------------------------
-    public double getRemainingAmount(int categoryId) {
-        Budget budget = getBudgetByCategoryId(categoryId);
-        if (budget == null) return 0;
-
-        return budget.getLimitAmount() - getTotalSpent(categoryId);
-    }
-
-
-    // ------------------------------------------------------
-    // CHECK IF EXCEEDED
-    // ------------------------------------------------------
+    /** Budget exceeded? */
     public boolean isBudgetExceeded(int categoryId) {
         Budget budget = getBudgetByCategoryId(categoryId);
         if (budget == null) return false;
 
-        return getTotalSpent(categoryId) > budget.getLimitAmount();
+        double spent = getTotalSpent(categoryId);
+        return spent > budget.getLimitAmount();
+    }
+
+    /** Remaining budget */
+    public double getRemainingAmount(int categoryId) {
+        Budget budget = getBudgetByCategoryId(categoryId);
+        if (budget == null) return 0;
+
+        double spent = getTotalSpent(categoryId);
+        return budget.getLimitAmount() - spent;
     }
 }
