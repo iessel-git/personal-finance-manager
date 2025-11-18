@@ -53,7 +53,15 @@
             <scope>test</scope>
         </dependency>
 
-    </dependencies>
+
+        <!-- SLF4J Simple Logger -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.9</version>
+        </dependency>
+
+         </dependencies>
 
     <build>
         <plugins>
