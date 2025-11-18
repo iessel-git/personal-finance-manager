@@ -1,79 +1,125 @@
-package com.cse.financeapp.service;
+package com.cse.financeapp.dao;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import com.cse.financeapp.models.Budget;
+import com.cse.financeapp.service.SupabaseClient;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-public class SupabaseClient {
+import java.util.ArrayList;
+import java.util.List;
 
-    private static final String SUPABASE_URL = "https://ggjvorvnrrbqixszpemk.supabase.co";
-    private static final String SUPABASE_API_KEY =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnanZvcnZucnJicWl4c3pwZW1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNDAzNzcsImV4cCI6MjA3ODgxNjM3N30.jPcgtyajOl0qM35XCPWAygmWeH2ecHMTMxBOCF5IVtU";
+public class BudgetService {
 
-    private final HttpClient client;
+    private final SupabaseClient client;
 
-    public SupabaseClient() {
-        this.client = HttpClient.newHttpClient();
+    public BudgetService(SupabaseClient client) {
+        this.client = client;
     }
 
-    // ---------------------------------------------------------
-    // Generic GET (Select)
-    // ---------------------------------------------------------
-    public String select(String table) throws Exception {
-        String url = SUPABASE_URL + "/rest/v1/" + table + "?select=*";
+    /** Insert new budget */
+    public void addBudget(Budget budget) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("category_id", budget.getCategoryId());
+            json.put("limit_amount", budget.getLimitAmount());
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("apikey", SUPABASE_API_KEY)
-                .header("Authorization", "Bearer " + SUPABASE_API_KEY)
-                .header("Content-Type", "application/json")
-                .GET()
-                .build();
+            client.insert("budget", json.toString());
+            System.out.println("✔ Budget added!");
 
-        HttpResponse<String> response =
-                client.send(request, HttpResponse.BodyHandlers.ofString());
-
-        return response.body();
+        } catch (Exception e) {
+            System.out.println("❌ Failed to add budget");
+            e.printStackTrace();
+        }
     }
 
-    // ---------------------------------------------------------
-    // Generic INSERT
-    // ---------------------------------------------------------
-    public String insert(String table, String jsonBody) throws Exception {
-        String url = SUPABASE_URL + "/rest/v1/" + table;
+    /** Fetch all budgets */
+    public List<Budget> getBudgets() {
+        List<Budget> list = new ArrayList<>();
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("apikey", SUPABASE_API_KEY)
-                .header("Authorization", "Bearer " + SUPABASE_API_KEY)
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                .build();
+        try {
+            String response = client.select("budget");
+            JSONArray arr = new JSONArray(response);
 
-        HttpResponse<String> response =
-                client.send(request, HttpResponse.BodyHandlers.ofString());
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.getJSONObject(i);
 
-        return response.body();
+                list.add(new Budget(
+                        o.getInt("id"),
+                        o.getInt("category_id"),
+                        o.getDouble("limit_amount")
+                ));
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Failed to fetch budgets");
+            e.printStackTrace();
+        }
+
+        return list;
     }
 
-    // ---------------------------------------------------------
-    // Generic DELETE by ID
-    // ---------------------------------------------------------
-    public String delete(String table, int id) throws Exception {
-        String url = SUPABASE_URL + "/rest/v1/" + table + "?id=eq." + id;
+    /** Fetch budget by category */
+    public Budget getBudgetByCategoryId(int categoryId) {
+        try {
+            String table = "budget?category_id=eq." + categoryId + "&select=*";
+            String response = client.select(table);
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("apikey", SUPABASE_API_KEY)
-                .header("Authorization", "Bearer " + SUPABASE_API_KEY)
-                .header("Content-Type", "application/json")
-                .DELETE()
-                .build();
+            JSONArray arr = new JSONArray(response);
+            if (arr.length() == 0) return null;
 
-        HttpResponse<String> response =
-                client.send(request, HttpResponse.BodyHandlers.ofString());
+            JSONObject o = arr.getJSONObject(0);
 
-        return response.body();
+            return new Budget(
+                    o.getInt("id"),
+                    o.getInt("category_id"),
+                    o.getDouble("limit_amount")
+            );
+
+        } catch (Exception e) {
+            System.out.println("❌ Failed to fetch budget by category");
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /** Total spent */
+    public double getTotalSpent(int categoryId) {
+        try {
+            String table = "expense?category_id=eq." + categoryId + "&select=*";
+            String response = client.select(table);
+
+            JSONArray arr = new JSONArray(response);
+            double sum = 0;
+
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.getJSONObject(i);
+                sum += o.getDouble("amount");
+            }
+
+            return sum;
+
+        } catch (Exception e) {
+            System.out.println("❌ Failed to calculate total spent");
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    /** Budget exceeded? */
+    public boolean isBudgetExceeded(int categoryId) {
+        Budget budget = getBudgetByCategoryId(categoryId);
+        if (budget == null) return false;
+
+        double spent = getTotalSpent(categoryId);
+        return spent > budget.getLimitAmount();
+    }
+
+    /** Remaining amount */
+    public double getRemainingAmount(int categoryId) {
+        Budget budget = getBudgetByCategoryId(categoryId);
+        if (budget == null) return 0;
+
+        double spent = getTotalSpent(categoryId);
+        return budget.getLimitAmount() - spent;
     }
 }
