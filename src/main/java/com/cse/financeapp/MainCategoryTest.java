@@ -1,38 +1,33 @@
 package com.cse.financeapp;
 
 import com.cse.financeapp.dao.CategoryService;
+import com.cse.financeapp.models.Category;
 import com.cse.financeapp.service.SupabaseClient;
-import org.json.JSONObject;
 
 import java.util.List;
 
 public class MainCategoryTest {
-
     public static void main(String[] args) {
-        try {
-            SupabaseClient client = new SupabaseClient();
-            CategoryService service = new CategoryService(client);
 
-            System.out.println("=== CATEGORY TEST ===");
+        // Use existing SupabaseClient with hardcoded key
+        SupabaseClient client = new SupabaseClient();
+        CategoryService categoryService = new CategoryService(client);
 
-            // CREATE
-            int id = service.createCategory("JUnitCategory", "Category Test");
-            System.out.println("Created category id=" + id);
+        System.out.println("\n=== Adding Test Category ===");
+        Category testCategory = new Category(0, "Test Category", "Just a test");
+        categoryService.addCategory(testCategory);
 
-            // LIST
-            List<JSONObject> list = service.listRawCategories();
-            System.out.println("Total categories: " + list.size());
+        System.out.println("\n=== Fetching All Categories ===");
+        List<Category> categories = categoryService.getCategories();
+        if (categories != null) {
+            for (Category c : categories) {
+                System.out.println(c.getId() + " | " + c.getName() + " | " + c.getDescription());
+            }
 
-            // UPDATE
-            boolean updated = service.updateCategory(id, "Updated Description");
-            System.out.println("Updated successfully? " + updated);
-
-            // DELETE
-            boolean deleted = service.deleteCategory(id);
-            System.out.println("Deleted successfully? " + deleted);
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            // Optional: delete last inserted category
+            int deleteId = categories.get(categories.size() - 1).getId();
+            System.out.println("\n=== Deleting Category ID " + deleteId + " ===");
+            categoryService.deleteCategory(deleteId);
         }
     }
 }
