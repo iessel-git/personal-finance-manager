@@ -21,14 +21,24 @@ class BudgetServiceTest {
 
     @Test
     void testAddBudget() throws Exception {
-        Budget b = new Budget(1, 500.0);
+        // Budget(categoryId, limitAmount)
+        Budget b = new Budget(5, 500.0);
 
-        // Mock Supabase insert response
+        // Mock response EXACTLY as BudgetService expects
+        String mockResponse = "[{\"id\": 10, \"category_id\": 5, \"limit_amount\": 500.0}]";
+
         Mockito.when(client.insert(Mockito.eq("budget"), Mockito.anyString()))
-                .thenReturn("{\"status\":\"success\"}");
+                .thenReturn(mockResponse);
 
-        service.addBudget(b);
+        Budget saved = service.addBudget(b);
 
+        // Assertions
+        assertNotNull(saved);
+        assertEquals(10, saved.getId());
+        assertEquals(5, saved.getCategoryId());
+        assertEquals(500.0, saved.getLimitAmount());
+
+        // Verify Supabase call
         Mockito.verify(client).insert(Mockito.eq("budget"), Mockito.anyString());
     }
 }
