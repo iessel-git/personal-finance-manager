@@ -16,19 +16,28 @@ public class BudgetService {
         this.client = client;
     }
 
-    /** Insert new budget */
-    public void addBudget(Budget budget) {
+    /** Create a new budget and return the saved object */
+    public Budget addBudget(Budget budget) {
         try {
             JSONObject json = new JSONObject();
             json.put("category_id", budget.getCategoryId());
             json.put("limit_amount", budget.getLimitAmount());
 
-            client.insert("budget", json.toString());
-            System.out.println("✔ Budget added!");
+            String response = client.insert("budget", json.toString());
+
+            JSONArray arr = new JSONArray(response);
+            JSONObject o = arr.getJSONObject(0);
+
+            return new Budget(
+                    o.getInt("id"),
+                    o.getInt("category_id"),
+                    o.getDouble("limit_amount")
+            );
 
         } catch (Exception e) {
             System.out.println("❌ Failed to add budget");
             e.printStackTrace();
+            return null;
         }
     }
 
@@ -42,20 +51,41 @@ public class BudgetService {
 
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.getJSONObject(i);
-
                 list.add(new Budget(
                         o.getInt("id"),
                         o.getInt("category_id"),
                         o.getDouble("limit_amount")
                 ));
             }
-
         } catch (Exception e) {
             System.out.println("❌ Failed to fetch budgets");
             e.printStackTrace();
         }
 
         return list;
+    }
+
+    /** Fetch budget by ID */
+    public Budget getBudgetById(int id) {
+        try {
+            String table = "budget?id=eq." + id + "&select=*";
+            String response = client.select(table);
+
+            JSONArray arr = new JSONArray(response);
+            if (arr.length() == 0) return null;
+
+            JSONObject o = arr.getJSONObject(0);
+            return new Budget(
+                    o.getInt("id"),
+                    o.getInt("category_id"),
+                    o.getDouble("limit_amount")
+            );
+
+        } catch (Exception e) {
+            System.out.println("❌ Failed to fetch budget by ID");
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /** Fetch budget by category */
@@ -79,6 +109,42 @@ public class BudgetService {
             System.out.println("❌ Failed to fetch budget by category");
             e.printStackTrace();
             return null;
+        }
+    }
+
+    /** Update a budget */
+    public Budget updateBudget(int id, Budget budget) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("category_id", budget.getCategoryId());
+            json.put("limit_amount", budget.getLimitAmount());
+
+            String response = client.update("budget", id, json.toString());
+            JSONArray arr = new JSONArray(response);
+
+            JSONObject o = arr.getJSONObject(0);
+            return new Budget(
+                    o.getInt("id"),
+                    o.getInt("category_id"),
+                    o.getDouble("limit_amount")
+            );
+
+        } catch (Exception e) {
+            System.out.println("❌ Failed to update budget");
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /** Delete a budget */
+    public boolean deleteBudget(int id) {
+        try {
+            client.delete("budget", id);
+            return true;
+        } catch (Exception e) {
+            System.out.println("❌ Failed to delete budget");
+            e.printStackTrace();
+            return false;
         }
     }
 
